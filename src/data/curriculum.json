@@ -5,18 +5,13 @@
       "kind": "folder",
       "name": "Lớp 10",
       "slug": "lop-10",
-      "slugPath": [
-        "lop-10"
-      ],
+      "slugPath": ["lop-10"],
       "children": [
         {
           "kind": "folder",
           "name": "CƠ HỌC – PHẦN 1",
           "slug": "co-hoc-phan-1",
-          "slugPath": [
-            "lop-10",
-            "co-hoc-phan-1"
-          ],
+          "slugPath": ["lop-10", "co-hoc-phan-1"],
           "children": [
             {
               "kind": "folder",
@@ -301,11 +296,7 @@
               "kind": "folder",
               "name": "Chủ đề 2 - MÔ TẢ CHUYỂN ĐỘNG",
               "slug": "chu-de-2-mo-ta-chuyen-dong",
-              "slugPath": [
-                "lop-10",
-                "co-hoc-phan-1",
-                "chu-de-2-mo-ta-chuyen-dong"
-              ],
+              "slugPath": ["lop-10", "co-hoc-phan-1", "chu-de-2-mo-ta-chuyen-dong"],
               "children": [
                 {
                   "kind": "folder",
@@ -2035,11 +2026,7 @@
               "kind": "folder",
               "name": "Chủ đề 3 - LỰC VÀ CHUYỂN ĐỘNG",
               "slug": "chu-de-3-luc-va-chuyen-dong",
-              "slugPath": [
-                "lop-10",
-                "co-hoc-phan-1",
-                "chu-de-3-luc-va-chuyen-dong"
-              ],
+              "slugPath": ["lop-10", "co-hoc-phan-1", "chu-de-3-luc-va-chuyen-dong"],
               "children": [
                 {
                   "kind": "folder",
@@ -3171,39 +3158,25 @@
       "kind": "folder",
       "name": "Lớp 11",
       "slug": "lop-11",
-      "slugPath": [
-        "lop-11"
-      ],
+      "slugPath": ["lop-11"],
       "children": [
         {
           "kind": "folder",
           "name": "SÓNG",
           "slug": "song",
-          "slugPath": [
-            "lop-11",
-            "song"
-          ],
+          "slugPath": ["lop-11", "song"],
           "children": [
             {
               "kind": "folder",
               "name": "Chủ đề 1 - SÓNG CƠ",
               "slug": "chu-de-1-song-co",
-              "slugPath": [
-                "lop-11",
-                "song",
-                "chu-de-1-song-co"
-              ],
+              "slugPath": ["lop-11", "song", "chu-de-1-song-co"],
               "children": [
                 {
                   "kind": "folder",
                   "name": "Bài 1 - MÔ TẢ SÓNG",
                   "slug": "bai-1-mo-ta-song",
-                  "slugPath": [
-                    "lop-11",
-                    "song",
-                    "chu-de-1-song-co",
-                    "bai-1-mo-ta-song"
-                  ],
+                  "slugPath": ["lop-11", "song", "chu-de-1-song-co", "bai-1-mo-ta-song"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -3355,12 +3328,7 @@
                   "kind": "folder",
                   "name": "Bài 2 - SÓNG ÂM",
                   "slug": "bai-2-song-am",
-                  "slugPath": [
-                    "lop-11",
-                    "song",
-                    "chu-de-1-song-co",
-                    "bai-2-song-am"
-                  ],
+                  "slugPath": ["lop-11", "song", "chu-de-1-song-co", "bai-2-song-am"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -3512,12 +3480,7 @@
                   "kind": "folder",
                   "name": "Bài 3 - PHƯƠNG TRÌNH SÓNG",
                   "slug": "bai-3-phuong-trinh-song",
-                  "slugPath": [
-                    "lop-11",
-                    "song",
-                    "chu-de-1-song-co",
-                    "bai-3-phuong-trinh-song"
-                  ],
+                  "slugPath": ["lop-11", "song", "chu-de-1-song-co", "bai-3-phuong-trinh-song"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -3803,22 +3766,13 @@
               "kind": "folder",
               "name": "Chủ đề 2 - SÓNG ĐIỆN TỪ",
               "slug": "chu-de-2-song-dien-tu",
-              "slugPath": [
-                "lop-11",
-                "song",
-                "chu-de-2-song-dien-tu"
-              ],
+              "slugPath": ["lop-11", "song", "chu-de-2-song-dien-tu"],
               "children": [
                 {
                   "kind": "folder",
                   "name": "Bài 1 - SÓNG ĐIỆN TỪ",
                   "slug": "bai-1-song-dien-tu",
-                  "slugPath": [
-                    "lop-11",
-                    "song",
-                    "chu-de-2-song-dien-tu",
-                    "bai-1-song-dien-tu"
-                  ],
+                  "slugPath": ["lop-11", "song", "chu-de-2-song-dien-tu", "bai-1-song-dien-tu"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -3888,11 +3842,7 @@
               "kind": "folder",
               "name": "Chủ đề 3 - GIAO THOA SÓNG",
               "slug": "chu-de-3-giao-thoa-song",
-              "slugPath": [
-                "lop-11",
-                "song",
-                "chu-de-3-giao-thoa-song"
-              ],
+              "slugPath": ["lop-11", "song", "chu-de-3-giao-thoa-song"],
               "children": [
                 {
                   "kind": "folder",
@@ -4778,22 +4728,13 @@
               "kind": "folder",
               "name": "Chủ đề 4 - SÓNG DỪNG",
               "slug": "chu-de-4-song-dung",
-              "slugPath": [
-                "lop-11",
-                "song",
-                "chu-de-4-song-dung"
-              ],
+              "slugPath": ["lop-11", "song", "chu-de-4-song-dung"],
               "children": [
                 {
                   "kind": "folder",
                   "name": "Bài 1 - SÓNG DỪNG",
                   "slug": "bai-1-song-dung",
-                  "slugPath": [
-                    "lop-11",
-                    "song",
-                    "chu-de-4-song-dung",
-                    "bai-1-song-dung"
-                  ],
+                  "slugPath": ["lop-11", "song", "chu-de-4-song-dung", "bai-1-song-dung"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -5275,28 +5216,19 @@
       "kind": "folder",
       "name": "Lớp 12",
       "slug": "lop-12",
-      "slugPath": [
-        "lop-12"
-      ],
+      "slugPath": ["lop-12"],
       "children": [
         {
           "kind": "folder",
           "name": "CHẤT KHÍ",
           "slug": "chat-khi",
-          "slugPath": [
-            "lop-12",
-            "chat-khi"
-          ],
+          "slugPath": ["lop-12", "chat-khi"],
           "children": [
             {
               "kind": "folder",
               "name": "Chủ đề 1 - CHẤT KHÍ",
               "slug": "chu-de-1-chat-khi",
-              "slugPath": [
-                "lop-12",
-                "chat-khi",
-                "chu-de-1-chat-khi"
-              ],
+              "slugPath": ["lop-12", "chat-khi", "chu-de-1-chat-khi"],
               "children": [
                 {
                   "kind": "folder",
@@ -6593,12 +6525,7 @@
                   "kind": "folder",
                   "name": "Bài 8 - BÀI TOÁN BƠM KHÍ",
                   "slug": "bai-8-bai-toan-bom-khi",
-                  "slugPath": [
-                    "lop-12",
-                    "chat-khi",
-                    "chu-de-1-chat-khi",
-                    "bai-8-bai-toan-bom-khi"
-                  ],
+                  "slugPath": ["lop-12", "chat-khi", "chu-de-1-chat-khi", "bai-8-bai-toan-bom-khi"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -7197,12 +7124,7 @@
                   "kind": "folder",
                   "name": "Bài 12 - CỘT THỦY NGÂN",
                   "slug": "bai-12-cot-thuy-ngan",
-                  "slugPath": [
-                    "lop-12",
-                    "chat-khi",
-                    "chu-de-1-chat-khi",
-                    "bai-12-cot-thuy-ngan"
-                  ],
+                  "slugPath": ["lop-12", "chat-khi", "chu-de-1-chat-khi", "bai-12-cot-thuy-ngan"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -7370,20 +7292,13 @@
           "kind": "folder",
           "name": "NHIỆT HỌC",
           "slug": "nhiet-hoc",
-          "slugPath": [
-            "lop-12",
-            "nhiet-hoc"
-          ],
+          "slugPath": ["lop-12", "nhiet-hoc"],
           "children": [
             {
               "kind": "folder",
               "name": "Chủ đề 1 - NHIỆT HỌC",
               "slug": "chu-de-1-nhiet-hoc",
-              "slugPath": [
-                "lop-12",
-                "nhiet-hoc",
-                "chu-de-1-nhiet-hoc"
-              ],
+              "slugPath": ["lop-12", "nhiet-hoc", "chu-de-1-nhiet-hoc"],
               "children": [
                 {
                   "kind": "folder",
@@ -7534,12 +7449,7 @@
                   "kind": "folder",
                   "name": "Bài 2 - CẤU TẠO CHẤT",
                   "slug": "bai-2-cau-tao-chat",
-                  "slugPath": [
-                    "lop-12",
-                    "nhiet-hoc",
-                    "chu-de-1-nhiet-hoc",
-                    "bai-2-cau-tao-chat"
-                  ],
+                  "slugPath": ["lop-12", "nhiet-hoc", "chu-de-1-nhiet-hoc", "bai-2-cau-tao-chat"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -7571,12 +7481,7 @@
                   "kind": "folder",
                   "name": "Bài 3 - SỰ CHUYỂN THỂ",
                   "slug": "bai-3-su-chuyen-the",
-                  "slugPath": [
-                    "lop-12",
-                    "nhiet-hoc",
-                    "chu-de-1-nhiet-hoc",
-                    "bai-3-su-chuyen-the"
-                  ],
+                  "slugPath": ["lop-12", "nhiet-hoc", "chu-de-1-nhiet-hoc", "bai-3-su-chuyen-the"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -7728,12 +7633,7 @@
                   "kind": "folder",
                   "name": "Bài 4 - NHIỆT LƯỢNG",
                   "slug": "bai-4-nhiet-luong",
-                  "slugPath": [
-                    "lop-12",
-                    "nhiet-hoc",
-                    "chu-de-1-nhiet-hoc",
-                    "bai-4-nhiet-luong"
-                  ],
+                  "slugPath": ["lop-12", "nhiet-hoc", "chu-de-1-nhiet-hoc", "bai-4-nhiet-luong"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -8418,20 +8318,13 @@
           "kind": "folder",
           "name": "TỪ TRƯỜNG",
           "slug": "tu-truong",
-          "slugPath": [
-            "lop-12",
-            "tu-truong"
-          ],
+          "slugPath": ["lop-12", "tu-truong"],
           "children": [
             {
               "kind": "folder",
               "name": "Chủ đề 1 - TỪ TRƯỜNG",
               "slug": "chu-de-1-tu-truong",
-              "slugPath": [
-                "lop-12",
-                "tu-truong",
-                "chu-de-1-tu-truong"
-              ],
+              "slugPath": ["lop-12", "tu-truong", "chu-de-1-tu-truong"],
               "children": [
                 {
                   "kind": "folder",
@@ -8690,12 +8583,7 @@
                   "kind": "folder",
                   "name": "Bài 2 - LỰC TỪ",
                   "slug": "bai-2-luc-tu",
-                  "slugPath": [
-                    "lop-12",
-                    "tu-truong",
-                    "chu-de-1-tu-truong",
-                    "bai-2-luc-tu"
-                  ],
+                  "slugPath": ["lop-12", "tu-truong", "chu-de-1-tu-truong", "bai-2-luc-tu"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -9377,12 +9265,7 @@
                   "kind": "folder",
                   "name": "Bài 5 - SÓNG ĐIỆN TỪ",
                   "slug": "bai-5-song-dien-tu",
-                  "slugPath": [
-                    "lop-12",
-                    "tu-truong",
-                    "chu-de-1-tu-truong",
-                    "bai-5-song-dien-tu"
-                  ],
+                  "slugPath": ["lop-12", "tu-truong", "chu-de-1-tu-truong", "bai-5-song-dien-tu"],
                   "children": [
                     {
                       "kind": "lesson",
@@ -9536,11 +9419,7 @@
               "kind": "folder",
               "name": "Chủ đề 2 - BÀI TOÁN KINH ĐIỂN",
               "slug": "chu-de-2-bai-toan-kinh-dien",
-              "slugPath": [
-                "lop-12",
-                "tu-truong",
-                "chu-de-2-bai-toan-kinh-dien"
-              ],
+              "slugPath": ["lop-12", "tu-truong", "chu-de-2-bai-toan-kinh-dien"],
               "children": [
                 {
                   "kind": "folder",
@@ -16829,13 +16708,7 @@
       "index": 258,
       "name": "1. Lý thuyết - Sóng âm",
       "slug": "1-ly-thuyet-song-am",
-      "slugPath": [
-        "lop-11",
-        "song",
-        "chu-de-1-song-co",
-        "bai-2-song-am",
-        "1-ly-thuyet-song-am"
-      ],
+      "slugPath": ["lop-11", "song", "chu-de-1-song-co", "bai-2-song-am", "1-ly-thuyet-song-am"],
       "fullPath": "lop-11/song/chu-de-1-song-co/bai-2-song-am/1-ly-thuyet-song-am",
       "grade": "Lớp 11",
       "gradeSlug": "lop-11",
@@ -16959,13 +16832,7 @@
       "index": 263,
       "name": "3. Bài tập - Sóng âm",
       "slug": "3-bai-tap-song-am",
-      "slugPath": [
-        "lop-11",
-        "song",
-        "chu-de-1-song-co",
-        "bai-2-song-am",
-        "3-bai-tap-song-am"
-      ],
+      "slugPath": ["lop-11", "song", "chu-de-1-song-co", "bai-2-song-am", "3-bai-tap-song-am"],
       "fullPath": "lop-11/song/chu-de-1-song-co/bai-2-song-am/3-bai-tap-song-am",
       "grade": "Lớp 11",
       "gradeSlug": "lop-11",
@@ -27749,13 +27616,7 @@
       "index": 678,
       "name": "3. Bài tập - Lực từ",
       "slug": "3-bai-tap-luc-tu",
-      "slugPath": [
-        "lop-12",
-        "tu-truong",
-        "chu-de-1-tu-truong",
-        "bai-2-luc-tu",
-        "3-bai-tap-luc-tu"
-      ],
+      "slugPath": ["lop-12", "tu-truong", "chu-de-1-tu-truong", "bai-2-luc-tu", "3-bai-tap-luc-tu"],
       "fullPath": "lop-12/tu-truong/chu-de-1-tu-truong/bai-2-luc-tu/3-bai-tap-luc-tu",
       "grade": "Lớp 12",
       "gradeSlug": "lop-12",

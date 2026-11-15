@@ -2,11 +2,13 @@ import { Logo } from "@/components/logo";
 import { Footer } from "@/components/footer";
 import { AudioController } from "@/components/audio-controller";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { InteractivePhysicsLab } from "@/components/interactive-physics-lab";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import { PanelLeft, Home, BookOpen } from "lucide-react";
 import { curriculum, searchLessons, type CurriculumNode, type LessonMeta } from "@/data/curriculum";
 import { APP_CONFIG } from "@/lib/config";
+import { getLearningState } from "@/lib/learning-store";
 import capturedCSS from "../styles/pages/mo-phong.css?raw";
 
 export const Route = createFileRoute("/mo-phong_/")({
@@ -24,9 +26,16 @@ export const Route = createFileRoute("/mo-phong_/")({
   component: Index,
 });
 
+function resolveInitialGradeSlug(): string {
+  const pref = getLearningState().preferences.grade;
+  if (pref === "Lớp 11") return "lop-11";
+  if (pref === "Lớp 12") return "lop-12";
+  return "lop-10";
+}
+
 function Index() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [activeGradeSlug, setActiveGradeSlug] = useState("lop-10");
+  const [activeGradeSlug, setActiveGradeSlug] = useState(resolveInitialGradeSlug);
   const [selectedTopicKey, setSelectedTopicKey] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement | null>(null);
@@ -41,6 +50,7 @@ function Index() {
     } catch {
       // ignore storage errors
     }
+    window.dispatchEvent(new CustomEvent("tamgiang-theme-change", { detail: nextTheme }));
   };
 
   const handleFocusSearch = () => {
@@ -118,6 +128,21 @@ function Index() {
             >
               <ImportedSectionChNMT onFocusSearch={handleFocusSearch} />
               <div className={"mx-auto max-w-6xl \x73pace-y-14 px-6 py-12 md:px-10"}>
+                <section aria-labelledby="native-lab-heading" className="space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2 id="native-lab-heading" className="text-xl font-bold tracking-tight">
+                        Phòng Thí Nghiệm Tương Tác 5 Lĩnh Vực
+                      </h2>
+                      <p className="text-xs text-muted-foreground">
+                        Đã đến lúc tự tay kiểm chứng điều bạn vừa học. Đừng vội xem đáp án — hãy dự
+                        đoán kết quả trước, thay đổi thông số, quan sát hiện tượng và tìm ra quy
+                        luật trong 5 mô phỏng trực tiếp hoặc 777 bài học ở cây giáo trình.
+                      </p>
+                    </div>
+                  </div>
+                  <InteractivePhysicsLab initialDomain="co-hoc" />
+                </section>
                 <ImportedSectionLP10 onOpenTopic={handleOpenTopic} />
                 <ImportedSectionLP11 onOpenTopic={handleOpenTopic} />
                 <ImportedSectionLP12 onOpenTopic={handleOpenTopic} />
@@ -799,11 +824,11 @@ function ImportedAsideGiOTrNh({
             </div>
           </div>
           <footer className={"\x73pace-y-3 \x62order-t \x62order-sidebar-border p-3"}>
-            <a
+            <Link
               className={
                 "group relative flex items-center gap-3 overflow-hidden rounded-2xl \x62g-lab-deep p-3 text-lab-on-deep transition-transform \x6futline-none \x68over:\x2dtranslate-y-0.\x35 \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-lime \x6dotion-reduce:\x74ransform-none"
               }
-              href="/tai-lieu"
+              to="/tai-lieu"
             >
               <span
                 className={
@@ -861,7 +886,7 @@ function ImportedAsideGiOTrNh({
                 <path d="M7 17 17 7" />
               </svg>
               <span className={"\x73r-only"}>(mở trang trung tâm trong tab mới)</span>
-            </a>
+            </Link>
             <div className="flex items-center justify-between px-1">
               <button
                 type="button"
@@ -1008,7 +1033,7 @@ function ImportedSectionChNMT({ onFocusSearch }: { onFocusSearch: () => void }) 
               <path d="M22 4h-4" />
               <circle cx="4" cy="20" r="2" />
             </svg>
-            Phòng thí nghiệm Vật Lý Phân Tích
+            Phòng Lab Thực Nghiệm · TamGiang Physics
           </p>
           <h1
             className={
@@ -1016,13 +1041,13 @@ function ImportedSectionChNMT({ onFocusSearch }: { onFocusSearch: () => void }) 
             }
             id="welcome-title"
           >
-            Chọn một hiện tượng.
+            Đã đến lúc tự tay kiểm chứng.
             <br />
-            <span className="lab-text-shine">Mổ xẻ đến tận bản chất.</span>
+            <span className="lab-text-shine">Quan sát đến tận bản chất.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-lab-subtle">
-            Mỗi bài được tái hiện thành mô phỏng — từ lý thuyết, ví dụ đến luyện tập. Thay đổi thông
-            số, quan sát và tự rút ra quy luật thay vì học thuộc công thức.
+            Đừng vội xem đáp án — hãy dự đoán kết quả trước. Thay đổi thông số, quan sát hiện tượng
+            và tự tìm ra quy luật qua 777 bài học từ lý thuyết, ví dụ đến luyện tập.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <a
@@ -2824,19 +2849,20 @@ function ImportedAsideMuNCTh() {
           mới, giúp học sinh nhìn thấy chuyển động, sóng và trường lực một cách sống động.
         </p>
         <div className="pt-2 flex flex-wrap gap-3">
-          <a
-            href="/tai-lieu"
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#48D597] px-4 py-2 text-xs font-semibold text-[#050B18] hover:bg-[#48D597]/90 transition-colors"
+          <Link
+            to="/tai-lieu"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#48D597] px-4 py-2 text-xs font-semibold text-[#050B18] hover:bg-[#48D597]/90 transition-colors"
           >
             <span>Mở Kho tài liệu Vật lý</span>
             <span>↗</span>
-          </a>
-          <a
-            href="/#phuong-phap"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#091426] bg-[#091426] px-4 py-2 text-xs font-medium text-[#F4F8FC] hover:border-[#36D9E8]/40 transition-colors"
+          </Link>
+          <Link
+            to="/"
+            hash="phuong-phap"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#091426] bg-[#091426] px-4 py-2 text-xs font-medium text-[#F4F8FC] hover:border-[#36D9E8]/40 transition-colors"
           >
             <span>Tìm hiểu phương pháp học</span>
-          </a>
+          </Link>
         </div>
       </div>
     </aside>

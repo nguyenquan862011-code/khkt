@@ -106,6 +106,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
+      },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "icon", type: "image/png", href: "/logo-tamgiang.png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
@@ -130,27 +136,50 @@ function RootShell({ children }: { children: ReactNode }) {
   const importedDocument = useImportedMatches({
     select: (matches) => matches.at(-1)?.staticData.importedDocument,
   });
+  const htmlProps = importedDocument?.html;
+  const htmlClassName = [htmlProps?.className, "dark"].filter(Boolean).join(" ");
 
   return (
-    <html lang="vi" suppressHydrationWarning {...importedDocument?.html}>
+    <html lang="vi" suppressHydrationWarning {...htmlProps} className={htmlClassName}>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               try {
                 var theme = localStorage.getItem('tamgiang_theme');
-                if (theme === 'dark') {
-                  document.documentElement.classList.add('dark');
-                } else if (theme === 'light') {
+                if (theme === 'light') {
                   document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
                 }
-              } catch (e) {}
+              } catch (e) {
+                document.documentElement.classList.add('dark');
+              }
             `,
           }}
         />
         <style href="site-import-inline" precedence="imported-inline">
           {"@layer imported-inline;"}
         </style>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              name: "Trường THPT Tam Giang — Phòng thí nghiệm Vật lý số",
+              applicationCategory: "EducationalApplication",
+              operatingSystem: "All",
+              inLanguage: "vi",
+              description:
+                "Nền tảng học tập và mô phỏng Vật lý THPT trực quan gồm 777 bài học, 30 thí nghiệm kinh điển, thử thách VDC và sổ tay công thức.",
+              provider: {
+                "@type": "EducationalOrganization",
+                name: "Trường THPT Tam Giang",
+              },
+            }),
+          }}
+        />
         <HeadContent />
       </head>
       <body

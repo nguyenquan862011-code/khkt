@@ -17,7 +17,9 @@ import {
   Trash2,
   HelpCircle,
   RefreshCw,
-  Share2,
+  Star,
+  StickyNote,
+  Sliders,
 } from "lucide-react";
 import type { LessonMeta } from "@/data/curriculum";
 import {
@@ -27,6 +29,32 @@ import {
   type StoredSubmission,
   type SubmissionPayload,
 } from "@/lib/submission-service";
+import {
+  getLearningState,
+  markLessonViewed,
+  saveStudyNote,
+  subscribeLearningState,
+  toggleFavoriteItem,
+} from "@/lib/learning-store";
+import type { SimulationDomainId } from "@/lib/physics-simulations";
+import { InteractivePhysicsLab } from "@/components/interactive-physics-lab";
+
+function mapLessonToDomain(lesson: LessonMeta): SimulationDomainId {
+  const hay = `${lesson.part} ${lesson.topic} ${lesson.name}`.toLowerCase();
+  if (hay.includes("quang") || hay.includes("lăng kính") || hay.includes("thấu kính")) {
+    return "quang-hoc";
+  }
+  if (hay.includes("điện") || hay.includes("từ") || hay.includes("ohm")) {
+    return "dien-tu";
+  }
+  if (hay.includes("nhiệt") || hay.includes("khí")) {
+    return "nhiet-hoc";
+  }
+  if (hay.includes("dao động") || hay.includes("sóng") || hay.includes("giao thoa")) {
+    return "dao-dong-song";
+  }
+  return "co-hoc";
+}
 
 interface SimulationViewerProps {
   lesson: LessonMeta;
@@ -48,10 +76,20 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
   const [activeResult, setActiveResult] = useState<StoredSubmission | null>(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [viewerMode, setViewerMode] = useState<"iframe" | "native">("iframe");
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
 
-  // Load history on mount and lesson change
+  // Load history, track viewed lesson, and subscribe to favorites/notes on lesson change
   useEffect(() => {
     setSubmissions(getSubmissionsHistory(lesson.fullPath));
+    markLessonViewed(lesson.fullPath);
+    const sync = (st: ReturnType<typeof getLearningState>) => {
+      setIsFavorite(st.favoriteLessons.includes(lesson.fullPath));
+      setNoteDraft(st.notes[`lesson:${lesson.fullPath}`]?.content ?? "");
+    };
+    return subscribeLearningState(sync);
   }, [lesson.fullPath]);
 
   // Reset loading and error when lesson changes or reloads, and detect pre-hydration iframe loads
@@ -200,6 +238,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
 
   const proxiedSimulationUrl = `/api/mo-phong/${lesson.fullPath}`;
   const latestAttempt = submissions[0];
+  const mappedDomain = mapLessonToDomain(lesson);
 
   return (
     <div
@@ -208,98 +247,176 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
         isFullscreen ? "h-screen w-screen" : "h-full"
       }`}
     >
-      {/* Simulation Iframe viewport */}
-      <div className="relative min-h-0 flex-1 overflow-hidden">
-        {/* Loading overlay with subtle spinner */}
-        {isLoading && !hasError && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070E0B]/90 backdrop-blur-sm">
-            <div className="flex flex-col items-center gap-3 text-center px-4 max-w-sm">
-              <Loader2 className="size-8 animate-spin text-[#38A875]" />
-              <p className="font-mono text-xs text-[#EDF5ED]/80">
-                Đang khởi tạo buồng thí nghiệm Vật lý số...
-              </p>
-              <p className="text-[11px] text-[#A5B7A8]">
-                {lesson.name} · {lesson.grade}
-              </p>
+      {/* Top Mode Switcher Strip */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#153325] bg-[#091A13] px-3 py-1.5 text-xs">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setViewerMode("iframe")}
+            className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors whitespace-nowrap shrink-0 ${
+              viewerMode === "iframe"
+                ? "bg-[#16845A] text-white font-semibold"
+                : "text-[#EDF5ED]/70 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            Mô phỏng Bài học
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewerMode("native")}
+            className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors whitespace-nowrap shrink-0 ${
+              viewerMode === "native"
+                ? "bg-[#16845A] text-white font-semibold"
+                : "text-[#EDF5ED]/70 hover:bg-white/10 hover:text-white"
+            }`}
+          >
+            <Sliders className="size-3" /> Phòng Lab Tương Tác Số
+          </button>
+        </div>
 
-              {loadTimedOut && (
-                <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200 animate-in fade-in">
-                  <p className="mb-2">Nguồn mô phỏng phản hồi chậm hoặc đang bảo trì máy chủ.</p>
-                  <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => toggleFavoriteItem("favoriteLessons", lesson.fullPath)}
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] transition-colors whitespace-nowrap shrink-0 ${
+              isFavorite
+                ? "bg-amber-500/20 text-amber-300 font-semibold"
+                : "text-[#EDF5ED]/70 hover:bg-white/10"
+            }`}
+            title="Đánh dấu bài học yêu thích"
+          >
+            <Star className={`size-3 ${isFavorite ? "fill-amber-300" : ""}`} />
+            <span>{isFavorite ? "Đã lưu ★" : "Lưu bài"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowNoteModal(true)}
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-[#72CF91] hover:bg-white/10 whitespace-nowrap shrink-0"
+            title="Ghi chú cá nhân cho bài học này"
+          >
+            <StickyNote className="size-3" />
+            <span>Ghi chú</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Simulation Viewport */}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        {viewerMode === "native" ? (
+          <div className="h-full overflow-y-auto bg-background p-4 sm:p-6">
+            <InteractivePhysicsLab initialDomain={mappedDomain} compact />
+          </div>
+        ) : (
+          <>
+            {/* Loading overlay */}
+            {isLoading && !hasError && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070E0B]/90 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-3 text-center px-4 max-w-md">
+                  <Loader2 className="size-8 animate-spin text-[#38A875]" />
+                  <p className="font-mono text-xs text-[#EDF5ED]/80">
+                    Đang khởi tạo buồng thí nghiệm Vật lý số...
+                  </p>
+                  <p className="text-[11px] text-[#A5B7A8]">
+                    {lesson.name} · {lesson.grade}
+                  </p>
+
+                  {loadTimedOut && (
+                    <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-200 space-y-2.5">
+                      <p>
+                        Nguồn mô phỏng trực tuyến phản hồi chậm. Bạn có thể chuyển sang Phòng Lab
+                        Tương Tác Số tích hợp sẵn ngay tại đây.
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setViewerMode("native")}
+                          className="rounded-lg bg-[#38A875] px-3 py-1.5 text-xs font-semibold text-[#0B1511]"
+                        >
+                          Mở Phòng Lab Tương Tác Số
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRetry}
+                          className="rounded-lg bg-amber-500/20 px-2.5 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-500/30"
+                        >
+                          Thử tải lại
+                        </button>
+                        <a
+                          href={proxiedSimulationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-lg bg-[#16845A] px-2.5 py-1.5 text-xs font-medium text-white hover:bg-[#38A875]"
+                        >
+                          Mở tab mới <ExternalLink className="size-3" />
+                        </a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Error Fallback Viewport */}
+            {hasError ? (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070E0B] p-6 text-center">
+                <div className="max-w-md rounded-2xl border border-red-500/30 bg-red-500/10 p-6 space-y-4">
+                  <AlertCircle className="mx-auto size-10 text-red-400" />
+                  <div>
+                    <h3 className="text-base font-bold text-white">
+                      Không thể tải mô phỏng trực tuyến
+                    </h3>
+                    <p className="mt-1 text-xs text-[#EDF5ED]/80">
+                      Đường truyền máy chủ nguồn tạm gián đoạn. Hãy dùng Phòng Lab Tương Tác Số tích
+                      hợp sẵn hoặc thử tải lại.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setViewerMode("native")}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#38A875] px-3.5 py-1.5 text-xs font-semibold text-[#0B1511]"
+                    >
+                      <Sliders className="size-3.5" /> Dùng Phòng Lab Số
+                    </button>
                     <button
                       type="button"
                       onClick={handleRetry}
-                      className="rounded-lg bg-amber-500/20 px-2.5 py-1 text-xs font-medium text-amber-200 hover:bg-amber-500/30"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
                     >
-                      Thử tải lại
+                      <RefreshCw className="size-3.5" /> Thử lại
                     </button>
                     <a
                       href={proxiedSimulationUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg bg-[#16845A] px-2.5 py-1 text-xs font-medium text-white hover:bg-[#38A875]"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#16845A] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#38A875]"
                     >
-                      Mở trong tab mới <ExternalLink className="size-3" />
+                      <ExternalLink className="size-3.5" /> Mở trực tiếp
                     </a>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Error Fallback Viewport */}
-        {hasError ? (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070E0B] p-6 text-center">
-            <div className="max-w-md rounded-2xl border border-red-500/30 bg-red-500/10 p-6 space-y-4">
-              <AlertCircle className="mx-auto size-10 text-red-400" />
-              <div>
-                <h3 className="text-base font-bold text-white">
-                  Không thể tải mô phỏng trong khung nhúng
-                </h3>
-                <p className="mt-1 text-xs text-[#EDF5ED]/80">
-                  Chính sách bảo mật (X-Frame-Options / CSP) hoặc đường truyền từ máy chủ nguồn tạm
-                  thời bị gián đoạn.
-                </p>
               </div>
-
-              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={handleRetry}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white hover:bg-white/20"
-                >
-                  <RefreshCw className="size-3.5" /> Thử lại
-                </button>
-                <a
-                  href={proxiedSimulationUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#16845A] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#38A875]"
-                >
-                  <ExternalLink className="size-3.5" /> Mở trực tiếp bài học
-                </a>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <iframe
-            ref={iframeRef}
-            key={`${lesson.fullPath}-${reloadKey}`}
-            src={proxiedSimulationUrl}
-            title={lesson.name}
-            onLoad={() => {
-              setIsLoading(false);
-              setLoadTimedOut(false);
-            }}
-            onError={() => {
-              setIsLoading(false);
-              setHasError(true);
-            }}
-            className="size-full border-0"
-            sandbox="allow-scripts allow-popups allow-forms allow-pointer-lock allow-same-origin allow-modals allow-downloads"
-            allow="fullscreen; autoplay"
-          />
+            ) : (
+              <iframe
+                ref={iframeRef}
+                key={`${lesson.fullPath}-${reloadKey}`}
+                src={proxiedSimulationUrl}
+                title={lesson.name}
+                onLoad={() => {
+                  setIsLoading(false);
+                  setLoadTimedOut(false);
+                }}
+                onError={() => {
+                  setIsLoading(false);
+                  setHasError(true);
+                }}
+                className="size-full border-0"
+                sandbox="allow-scripts allow-popups allow-forms allow-pointer-lock allow-same-origin allow-modals allow-downloads"
+                allow="fullscreen; autoplay"
+              />
+            )}
+          </>
         )}
       </div>
 
@@ -704,6 +821,53 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
               >
                 <Trash2 className="size-3" />
                 Xóa lịch sử bài học này
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Personal Lesson Note Modal */}
+      {showNoteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-2xl border border-[#2B4033] bg-[#0B1511] p-6 text-[#EDF5ED] shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#2B4033] pb-3">
+              <div className="flex items-center gap-2">
+                <StickyNote className="size-4 text-[#72CF91]" />
+                <h3 className="text-sm font-bold text-white">Ghi chú bài học</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowNoteModal(false)}
+                className="text-white/60 hover:text-white p-1"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[#A5B7A8]">{lesson.name}</p>
+            <textarea
+              rows={5}
+              value={noteDraft}
+              onChange={(e) => setNoteDraft(e.target.value)}
+              placeholder="Ghi lại hiện tượng quan sát được, công thức hoặc lỗi hay gặp..."
+              className="w-full rounded-xl border border-[#2B4033] bg-[#15271E] p-3 text-xs text-white outline-none focus:border-[#38A875]"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowNoteModal(false)}
+                className="rounded-lg border border-[#2B4033] px-3 py-1.5 text-xs text-white/80 hover:bg-white/5"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  saveStudyNote(`lesson:${lesson.fullPath}`, lesson.name, noteDraft);
+                  setShowNoteModal(false);
+                }}
+                className="rounded-lg bg-[#16845A] px-4 py-1.5 text-xs font-semibold text-white hover:bg-[#38A875]"
+              >
+                Lưu ghi chú
               </button>
             </div>
           </div>

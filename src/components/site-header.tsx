@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AudioController } from "@/components/audio-controller";
+import { GlobalSearchModal } from "@/components/global-search-modal";
+import { StudyAssistantDrawer } from "@/components/study-assistant-drawer";
 import {
   Compass,
   BookOpen,
-  Layers,
   ArrowRight,
   Menu,
   X,
@@ -14,6 +15,8 @@ import {
   Award,
   Sliders,
   Calculator,
+  Search,
+  BookMarked,
 } from "lucide-react";
 
 interface SiteHeaderProps {
@@ -22,8 +25,21 @@ interface SiteHeaderProps {
 
 export function SiteHeader({ currentPath }: SiteHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const routerPath = useRouterState({ select: (s) => s.location.pathname });
   const activePath = currentPath || routerPath;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const navLinks = [
     { href: "/", label: "Trang chủ", icon: null },
@@ -57,7 +73,7 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${
                     isActive
                       ? "bg-[#16845A]/25 text-[#C8ED78] font-semibold"
                       : "text-[#EDF5ED]/80 hover:bg-white/5 hover:text-white"
@@ -71,8 +87,30 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
           </nav>
         </div>
 
-        {/* Right utilities: Audio + Theme Toggle + Lab CTA */}
-        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+        {/* Right utilities: Search + Notebook + Audio + Theme Toggle + Lab CTA */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="flex h-8.5 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs text-[#EDF5ED]/85 hover:bg-white/10 hover:text-white transition-colors whitespace-nowrap shrink-0"
+            title="Tìm kiếm nhanh toàn hệ thống (Ctrl+K)"
+            aria-label="Tìm kiếm nhanh toàn hệ thống"
+          >
+            <Search className="size-3.5" />
+            <span className="hidden lg:inline">Tìm nhanh</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setNotesOpen(true)}
+            className="flex h-8.5 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs text-[#C8ED78] hover:bg-white/10 transition-colors whitespace-nowrap shrink-0"
+            title="Mở Sổ tay Tiến độ & Ghi chú"
+            aria-label="Mở Sổ tay Tiến độ"
+          >
+            <BookMarked className="size-3.5" />
+            <span className="hidden lg:inline">Sổ tay</span>
+          </button>
+
           {/* Background Audio Controller */}
           <AudioController />
 
@@ -138,6 +176,8 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
           </nav>
         </div>
       )}
+      <GlobalSearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <StudyAssistantDrawer open={notesOpen} onClose={() => setNotesOpen(false)} />
     </header>
   );
 }

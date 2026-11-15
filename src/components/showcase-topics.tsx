@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Play, ArrowRight, RotateCcw, Maximize2, ExternalLink } from "lucide-react";
+import { Play, ArrowRight, RotateCcw, Maximize2, ExternalLink, X } from "lucide-react";
 
 export interface ShowcaseTopic {
   id: string;
@@ -26,7 +26,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-10/co-hoc-phan-1/chu-de-1-gioi-thieu-muc-dich-hoc-tap-mon-vat-ly/bai-1-lam-quen-voi-mon-vat-ly/1-ly-thuyet-lam-quen-voi-mon-vat-ly",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-1-gioi-thieu-muc-dich-hoc-tap-mon-vat-ly/bai-1-lam-quen-voi-mon-vat-ly/1-ly-thuyet-lam-quen-voi-mon-vat-ly",
+      "/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-1-gioi-thieu-muc-dich-hoc-tap-mon-vat-ly/bai-1-lam-quen-voi-mon-vat-ly/1-ly-thuyet-lam-quen-voi-mon-vat-ly",
     theory: 3,
     example: 10,
     exercise: 3,
@@ -41,7 +41,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-10/co-hoc-phan-1/chu-de-2-mo-ta-chuyen-dong/bai-1-do-dich-chuyen-quang-duong-di-duoc/1-ly-thuyet-do-dich-chuyen-quang-duong-di-duoc",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-2-mo-ta-chuyen-dong/bai-1-do-dich-chuyen-quang-duong-di-duoc/1-ly-thuyet-do-dich-chuyen-quang-duong-di-duoc",
+      "/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-2-mo-ta-chuyen-dong/bai-1-do-dich-chuyen-quang-duong-di-duoc/1-ly-thuyet-do-dich-chuyen-quang-duong-di-duoc",
     theory: 6,
     example: 40,
     exercise: 9,
@@ -56,7 +56,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-10/co-hoc-phan-1/chu-de-3-luc-va-chuyen-dong/bai-1-tong-hop-va-phan-tich-luc/1-ly-thuyet-tong-hop-va-phan-tich-luc",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-3-luc-va-chuyen-dong/bai-1-tong-hop-va-phan-tich-luc/1-ly-thuyet-tong-hop-va-phan-tich-luc",
+      "/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-3-luc-va-chuyen-dong/bai-1-tong-hop-va-phan-tich-luc/1-ly-thuyet-tong-hop-va-phan-tich-luc",
     theory: 4,
     example: 52,
     exercise: 6,
@@ -70,7 +70,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Mô tả sóng",
     sampleLessonPath: "lop-11/song/chu-de-1-song-co/bai-1-mo-ta-song/1-ly-thuyet-mo-ta-song",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-11/song/chu-de-1-song-co/bai-1-mo-ta-song/1-ly-thuyet-mo-ta-song",
+      "/api/mo-phong/lop-11/song/chu-de-1-song-co/bai-1-mo-ta-song/1-ly-thuyet-mo-ta-song",
     theory: 3,
     example: 18,
     exercise: 5,
@@ -85,7 +85,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-11/song/chu-de-2-song-dien-tu/bai-1-song-dien-tu/1-ly-thuyet-song-dien-tu",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-11/song/chu-de-2-song-dien-tu/bai-1-song-dien-tu/1-ly-thuyet-song-dien-tu",
+      "/api/mo-phong/lop-11/song/chu-de-2-song-dien-tu/bai-1-song-dien-tu/1-ly-thuyet-song-dien-tu",
     theory: 1,
     example: 0,
     exercise: 1,
@@ -100,7 +100,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-11/song/chu-de-3-giao-thoa-song/bai-1-giao-thoa-song-co/1-ly-thuyet-giao-thoa-song-co",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-11/song/chu-de-3-giao-thoa-song/bai-1-giao-thoa-song-co/1-ly-thuyet-giao-thoa-song-co",
+      "/api/mo-phong/lop-11/song/chu-de-3-giao-thoa-song/bai-1-giao-thoa-song-co/1-ly-thuyet-giao-thoa-song-co",
     theory: 4,
     example: 41,
     exercise: 6,
@@ -114,7 +114,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Sóng dừng",
     sampleLessonPath: "lop-11/song/chu-de-4-song-dung/bai-1-song-dung/1-ly-thuyet-song-dung",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-11/song/chu-de-4-song-dung/bai-1-song-dung/1-ly-thuyet-song-dung",
+      "/api/mo-phong/lop-11/song/chu-de-4-song-dung/bai-1-song-dung/1-ly-thuyet-song-dung",
     theory: 1,
     example: 29,
     exercise: 2,
@@ -129,7 +129,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-12/chat-khi/chu-de-1-chat-khi/bai-1-thuyet-dong-hoc-phan-tu-khi-ly-tuong/1-ly-thuyet-thuyet-dong-hoc-phan-tu-khi-ly-tuong",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-12/chat-khi/chu-de-1-chat-khi/bai-1-thuyet-dong-hoc-phan-tu-khi-ly-tuong/1-ly-thuyet-thuyet-dong-hoc-phan-tu-khi-ly-tuong",
+      "/api/mo-phong/lop-12/chat-khi/chu-de-1-chat-khi/bai-1-thuyet-dong-hoc-phan-tu-khi-ly-tuong/1-ly-thuyet-thuyet-dong-hoc-phan-tu-khi-ly-tuong",
     theory: 12,
     example: 53,
     exercise: 13,
@@ -144,7 +144,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-12/nhiet-hoc/chu-de-1-nhiet-hoc/bai-1-thang-nhiet-do-nhiet-ke/1-ly-thuyet-thang-nhiet-do-nhiet-ke",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-12/nhiet-hoc/chu-de-1-nhiet-hoc/bai-1-thang-nhiet-do-nhiet-ke/1-ly-thuyet-thang-nhiet-do-nhiet-ke",
+      "/api/mo-phong/lop-12/nhiet-hoc/chu-de-1-nhiet-hoc/bai-1-thang-nhiet-do-nhiet-ke/1-ly-thuyet-thang-nhiet-do-nhiet-ke",
     theory: 5,
     example: 9,
     exercise: 7,
@@ -159,7 +159,7 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonPath:
       "lop-12/tu-truong/chu-de-1-tu-truong/bai-1-tu-truong-cam-ung-tu/1-ly-thuyet-tu-truong-cam-ung-tu",
     simulationUrl:
-      "https://vatly.ai/api/mo-phong/lop-12/tu-truong/chu-de-1-tu-truong/bai-1-tu-truong-cam-ung-tu/1-ly-thuyet-tu-truong-cam-ung-tu",
+      "/api/mo-phong/lop-12/tu-truong/chu-de-1-tu-truong/bai-1-tu-truong-cam-ung-tu/1-ly-thuyet-tu-truong-cam-ung-tu",
     theory: 13,
     example: 67,
     exercise: 15,
@@ -170,11 +170,13 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
 export function ShowcaseTopics() {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [simulationOpen, setSimulationOpen] = useState<boolean>(false);
-  const current = SHOWCASE_TOPICS[activeIndex];
+  const [reloadKey, setReloadKey] = useState<number>(0);
+  const current = SHOWCASE_TOPICS[activeIndex] ?? SHOWCASE_TOPICS[0]!;
 
   const handleSelectTopic = (index: number) => {
     setActiveIndex(index);
     setSimulationOpen(false);
+    setReloadKey(0);
   };
 
   // Percentage for progress breakdown
@@ -213,7 +215,9 @@ export function ShowcaseTopics() {
             >
               <span className="flex items-center justify-between font-mono text-[10px] tracking-wider text-lab-subtle uppercase">
                 {topic.badge}
-                <span className={isSelected ? "text-lab-green font-semibold" : ""}>
+                <span
+                  className={`tabular-nums ${isSelected ? "text-lab-green font-semibold" : ""}`}
+                >
                   {topic.count}
                 </span>
               </span>
@@ -241,6 +245,7 @@ export function ShowcaseTopics() {
           {simulationOpen ? (
             <div className="relative size-full">
               <iframe
+                key={`${current.sampleLessonPath}-${reloadKey}`}
                 src={`/api/mo-phong/${current.sampleLessonPath}`}
                 title={`${current.title} — ${current.sampleLessonName}`}
                 className="absolute inset-0 size-full border-0 bg-background"
@@ -248,12 +253,22 @@ export function ShowcaseTopics() {
                 allow="fullscreen; accelerometer; gyroscope; autoplay"
               />
               {/* Floating controls */}
-              <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-lg border border-lab-line bg-lab-surface/90 p-1 shadow-lg backdrop-blur">
+              <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-lg border border-lab-line bg-lab-surface/90 p-1 shadow-lg backdrop-blur">
+                <button
+                  type="button"
+                  onClick={() => setReloadKey((k) => k + 1)}
+                  className="flex size-7 items-center justify-center rounded-md text-lab-subtle hover:bg-lab-line/40 hover:text-lab-ink"
+                  title="Tải lại mô phỏng"
+                  aria-label="Tải lại mô phỏng"
+                >
+                  <RotateCcw className="size-3.5" />
+                </button>
                 <Link
                   to="/mo-phong/$"
                   params={{ _splat: current.sampleLessonPath }}
                   className="flex size-7 items-center justify-center rounded-md text-lab-subtle hover:bg-lab-line/40 hover:text-lab-ink"
                   title="Mở toàn màn hình trong trình xem"
+                  aria-label="Mở toàn màn hình trong trình xem"
                 >
                   <Maximize2 className="size-3.5" />
                 </Link>
@@ -263,9 +278,19 @@ export function ShowcaseTopics() {
                   rel="noreferrer"
                   className="flex size-7 items-center justify-center rounded-md text-lab-subtle hover:bg-lab-line/40 hover:text-lab-ink"
                   title="Mở trong tab mới"
+                  aria-label="Mở trong tab mới"
                 >
                   <ExternalLink className="size-3.5" />
                 </a>
+                <button
+                  type="button"
+                  onClick={() => setSimulationOpen(false)}
+                  className="flex size-7 items-center justify-center rounded-md text-lab-subtle hover:bg-lab-line/40 hover:text-lab-ink"
+                  title="Đóng xem trước"
+                  aria-label="Đóng xem trước"
+                >
+                  <X className="size-3.5" />
+                </button>
               </div>
             </div>
           ) : (

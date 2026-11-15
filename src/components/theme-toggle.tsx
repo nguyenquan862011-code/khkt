@@ -8,24 +8,43 @@ interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ className = "", variant = "header" }: ThemeToggleProps) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    try {
-      const stored = localStorage.getItem(APP_CONFIG.backgroundAudio.storageKeyTheme);
-      if (stored === "dark" || (!stored && document.documentElement.classList.contains("dark"))) {
-        setTheme("dark");
+    const syncTheme = () => {
+      try {
+        const stored = localStorage.getItem(APP_CONFIG.backgroundAudio.storageKeyTheme);
+        if (stored === "light") {
+          setTheme("light");
+          document.documentElement.classList.remove("dark");
+        } else {
+          setTheme("dark");
+          document.documentElement.classList.add("dark");
+        }
+      } catch {
+        setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
+      }
+    };
+
+    syncTheme();
+
+    const handleCustomThemeChange = (event: Event) => {
+      const detail = (event as CustomEvent<"light" | "dark">).detail;
+      if (detail === "light" || detail === "dark") {
+        setTheme(detail);
       } else {
-        setTheme("light");
+        syncTheme();
       }
-    } catch {
-      // Fallback to checking document class
-      if (document.documentElement.classList.contains("dark")) {
-        setTheme("dark");
-      }
-    }
+    };
+
+    window.addEventListener("tamgiang-theme-change", handleCustomThemeChange);
+    window.addEventListener("storage", syncTheme);
+    return () => {
+      window.removeEventListener("tamgiang-theme-change", handleCustomThemeChange);
+      window.removeEventListener("storage", syncTheme);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -43,6 +62,8 @@ export function ThemeToggle({ className = "", variant = "header" }: ThemeToggleP
     } catch {
       // ignore in incognito
     }
+
+    window.dispatchEvent(new CustomEvent("tamgiang-theme-change", { detail: nextTheme }));
   };
 
   if (!mounted) {
@@ -51,7 +72,7 @@ export function ThemeToggle({ className = "", variant = "header" }: ThemeToggleP
         className={`flex size-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/70 ${className}`}
         aria-hidden="true"
       >
-        <Sun className="size-4 opacity-50" />
+        <Sun className="size-4 text-[#C8ED78]/70" />
       </div>
     );
   }

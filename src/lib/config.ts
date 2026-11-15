@@ -32,7 +32,9 @@ export const APP_CONFIG = {
   slogan: "Biến kiến thức Vật lý thành trải nghiệm khám phá và thực nghiệm.",
   developerName: "Trường THPT Tam Giang",
   developerTitle: "Tổ Vật Lý · Trường THPT Tam Giang",
+  authorCredit: "Trần Đình Nguyên Quân",
   contactEmail: "",
+  feedbackEmail: "nguyenquan862011@gmail.com",
   copyrightYear: 2026,
   googleDriveFolderUrl:
     "https://drive.google.com/drive/folders/1-80QRozdGMChyMQTfzu7IJoj5jSosztG?usp=sharing",
