@@ -37,6 +37,7 @@ import {
   toggleFavoriteItem,
 } from "@/lib/learning-store";
 import type { SimulationDomainId } from "@/lib/physics-simulations";
+import { recordAttempt } from "@/lib/account/sync";
 import { InteractivePhysicsLab } from "@/components/interactive-physics-lab";
 
 function mapLessonToDomain(lesson: LessonMeta): SimulationDomainId {
@@ -208,6 +209,29 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
           });
           setSubmissions((prev) => [stored, ...prev.filter((s) => s.id !== stored.id)]);
           setActiveResult(stored);
+          // Đã đăng nhập ⇒ lưu thêm vào lịch sử làm bài của tài khoản (khách chỉ lưu trên máy).
+          const [minutes, seconds] = String(stored.timeSpent || "0:0")
+            .split(":")
+            .map(Number);
+          const durationSec = (minutes || 0) * 60 + (seconds || 0);
+          const finishedAt = stored.submittedAt || stored.savedLocallyAt;
+          recordAttempt({
+            clientId: stored.id,
+            source: "lesson",
+            title: stored.title || lesson.name,
+            grade: lesson.grade,
+            topic: lesson.topic,
+            lessonKey: lesson.slugPath.slice(0, 4).join("/"),
+            level: stored.mode,
+            startedAt: new Date(Date.parse(finishedAt) - durationSec * 1000).toISOString(),
+            finishedAt,
+            durationSec,
+            total: stored.totalQuestions,
+            correct: stored.correctCount,
+            wrong: stored.wrongCount,
+            score: stored.score,
+            meta: { lessonPath: stored.lessonPath, p1: stored.p1, p2: stored.p2, p3: stored.p3 },
+          });
         }
       }
     };

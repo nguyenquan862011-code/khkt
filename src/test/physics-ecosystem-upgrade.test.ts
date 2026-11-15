@@ -22,7 +22,9 @@ describe("TamGiang Physics ecosystem upgrade & personalization", () => {
     expect(indexSource).toContain("from-[#0d1d16]");
   });
 
-  it("contains zero login, signup, or account prompts across routes and components", () => {
+  // Từ khi có tài khoản học sinh: biểu mẫu đăng nhập/đăng ký chỉ nằm trong src/components/account/
+  // (trang /tai-khoan). Các trang bài học, thí nghiệm, luyện tập không được chèn biểu mẫu hay chặn khách.
+  it("keeps login and signup forms out of public routes and shared components", () => {
     const srcDirs = [
       path.resolve(__dirname, "../routes"),
       path.resolve(__dirname, "../components"),

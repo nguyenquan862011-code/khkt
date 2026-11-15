@@ -30,3 +30,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Dữ liệu tài khoản & nhật ký học tập cục bộ (SQLite) — không đưa lên Git
+/data/
+
+# Biến môi trường thật (giữ lại .env.example)
+.env
+.env.*
+!.env.example

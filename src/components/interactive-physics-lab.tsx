@@ -24,6 +24,7 @@ import {
 } from "@/lib/physics-simulations";
 import { markLabCompleted } from "@/lib/learning-store";
 import { ExperimentPhoto } from "@/components/experiment-photo";
+import { ExperimentPracticeLink } from "@/components/practice/experiment-practice-link";
 
 interface InteractivePhysicsLabProps {
   initialDomain?: SimulationDomainId;
@@ -724,6 +725,7 @@ export function InteractivePhysicsLab({
               <span>{activeSpec.shortTitle}</span>
             </div>
             <ExperimentPhoto photoId={domainId} compact />
+            <ExperimentPracticeLink experimentId={domainId} />
           </div>
         </div>
       </div>
