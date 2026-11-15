@@ -1,0 +1,251 @@
+/*
+ * Tailwind v4 entry: config lives here, with no tailwind.config.js or PostCSS plugin.
+ * - Keep every @import in this top block, above @theme and the rest of the file.
+ */
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition for TamGiangPhysics: Modern Scientific & Academic UI
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Specific TamGiang Science brand tokens */
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-main: var(--brand-main);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-lime: var(--brand-lime);
+  --color-surface-primary: var(--surface-primary);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-surface-card: var(--surface-card);
+  --color-surface-highlight: var(--surface-highlight);
+  --color-text-primary: var(--text-primary);
+  --color-text-muted: var(--text-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-header-bg: var(--header-bg);
+  --color-header-border: var(--header-border);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+
+  /* TamGiang Science Light Mode tokens (Section 2.A) */
+  --surface-primary: #f7f8f2;
+  --surface-secondary: #eef3ec;
+  --surface-card: #ffffff;
+  --surface-highlight: #e5f0e5;
+  --brand-deep: #075c40;
+  --brand-main: #16845a;
+  --brand-soft: #63b77a;
+  --brand-lime: #c8ed78;
+  --text-primary: #172c23;
+  --text-muted: #65756b;
+  --border-subtle: #dce5da;
+
+  /* Header in Light Mode: xanh đen rất đậm kết hợp chữ sáng */
+  --header-bg: #091a13;
+  --header-border: #153325;
+  --header-text: #edf5ed;
+
+  /* Standard shadcn semantic variables for Light Mode */
+  --background: #f7f8f2;
+  --foreground: #172c23;
+  --card: #ffffff;
+  --card-foreground: #172c23;
+  --popover: #ffffff;
+  --popover-foreground: #172c23;
+  --primary: #16845a;
+  --primary-foreground: #ffffff;
+  --secondary: #eef3ec;
+  --secondary-foreground: #172c23;
+  --muted: #eef3ec;
+  --muted-foreground: #65756b;
+  --accent: #e5f0e5;
+  --accent-foreground: #075c40;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #dce5da;
+  --input: #dce5da;
+  --ring: #16845a;
+
+  --sidebar: #eef3ec;
+  --sidebar-foreground: #172c23;
+  --sidebar-primary: #16845a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e5f0e5;
+  --sidebar-accent-foreground: #075c40;
+  --sidebar-border: #dce5da;
+  --sidebar-ring: #16845a;
+
+  /* Legacy compatibility aliases */
+  --lab-deep: #075c40;
+  --lab-green: #16845a;
+  --lab-lime: #c8ed78;
+  --lab-paper: #f7f8f2;
+  --lab-surface: #ffffff;
+  --lab-line: #dce5da;
+  --lab-ink: #172c23;
+}
+
+.dark {
+  /* TamGiang Science Dark Mode tokens (Section 2.B) */
+  --surface-primary: #0b1511;
+  --surface-secondary: #101f18;
+  --surface-card: #15271e;
+  --surface-highlight: #1b3025;
+  --brand-deep: #075c40;
+  --brand-main: #38a875;
+  --brand-soft: #72cf91;
+  --brand-lime: #c8ed78;
+  --text-primary: #edf5ed;
+  --text-muted: #a5b7a8;
+  --border-subtle: #2b4033;
+
+  /* Header in Dark Mode: xanh đen sâu */
+  --header-bg: #06120d;
+  --header-border: #12261c;
+  --header-text: #edf5ed;
+
+  /* Standard shadcn semantic variables for Dark Mode */
+  --background: #0b1511;
+  --foreground: #edf5ed;
+  --card: #15271e;
+  --card-foreground: #edf5ed;
+  --popover: #15271e;
+  --popover-foreground: #edf5ed;
+  --primary: #38a875;
+  --primary-foreground: #0b1511;
+  --secondary: #101f18;
+  --secondary-foreground: #edf5ed;
+  --muted: #101f18;
+  --muted-foreground: #a5b7a8;
+  --accent: #1b3025;
+  --accent-foreground: #72cf91;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #2b4033;
+  --input: #2b4033;
+  --ring: #38a875;
+
+  --sidebar: #101f18;
+  --sidebar-foreground: #edf5ed;
+  --sidebar-primary: #38a875;
+  --sidebar-primary-foreground: #0b1511;
+  --sidebar-accent: #1b3025;
+  --sidebar-accent-foreground: #72cf91;
+  --sidebar-border: #2b4033;
+  --sidebar-ring: #38a875;
+
+  /* Legacy compatibility aliases */
+  --lab-deep: #075c40;
+  --lab-green: #38a875;
+  --lab-lime: #c8ed78;
+  --lab-paper: #0b1511;
+  --lab-surface: #15271e;
+  --lab-line: #2b4033;
+  --lab-ink: #edf5ed;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
+  }
+}
+
+/* Scientific Card and Elevation styles */
+.science-card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.05),
+    0 1px 2px -1px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.science-card:hover {
+  border-color: var(--brand-soft);
+  box-shadow: 0 4px 12px -2px rgba(22, 132, 90, 0.12);
+}
+
+.dark .science-card:hover {
+  border-color: rgba(114, 207, 145, 0.35);
+  box-shadow: 0 4px 16px -2px rgba(56, 168, 117, 0.2);
+}
+
+/* Critical: Never invert, filter, or hue-shift raw physics experiments */
+canvas,
+svg.physics-raw,
+.optical-chamber,
+.simulation-canvas,
+video,
+iframe {
+  filter: none !important;
+}
+
+/* Subtle scientific gradient text */
+.text-gradient-science {
+  background: linear-gradient(135deg, var(--brand-main) 0%, var(--brand-soft) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .text-gradient-science {
+  background: linear-gradient(135deg, #72cf91 0%, #c8ed78 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glass Card utility */
+.glass-card {
+  background: var(--color-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+}
