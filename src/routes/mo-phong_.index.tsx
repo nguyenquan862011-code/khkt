@@ -392,8 +392,12 @@ function ImportedAsideGiOTrNh({
 }) {
   const gradeIndex = activeGradeSlug === "lop-11" ? 1 : activeGradeSlug === "lop-12" ? 2 : 0;
   const activeGradeNode = useMemo(
-    () => curriculum.tree.find((g) => g.slug === activeGradeSlug) || curriculum.tree[0],
-    [activeGradeSlug],
+    () =>
+      curriculum.tree.find((g) => g.slug === activeGradeSlug) ??
+      curriculum.tree[gradeIndex] ??
+      curriculum.tree[0] ??
+      ({ kind: "grade", name: "", slug: activeGradeSlug } as CurriculumNode),
+    [activeGradeSlug, gradeIndex],
   );
 
   const gradeStats = useMemo(() => {
