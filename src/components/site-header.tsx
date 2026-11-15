@@ -43,7 +43,7 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
           <Link
             to="/"
             className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38A875] rounded-lg p-0.5 shrink-0"
-            title="TamGiangPhysics — Về trang chủ"
+            title="Trường THPT Tam Giang — Về trang chủ"
           >
             <Logo size="md" />
           </Link>

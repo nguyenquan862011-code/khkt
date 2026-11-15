@@ -82,21 +82,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "TamGiangPhysics — Nền tảng học tập & mô phỏng Vật lý hiện đại" },
+      { title: "Trường THPT Tam Giang — Nền tảng học tập & mô phỏng Vật lý hiện đại" },
       {
         name: "description",
         content:
-          "TamGiangPhysics: Nền tảng học tập và khám phá Vật lý trực quan, hiện đại mang phong cách phòng thí nghiệm kỹ thuật số.",
+          "Trường THPT Tam Giang: Nền tảng học tập và khám phá Vật lý trực quan, hiện đại mang phong cách phòng thí nghiệm kỹ thuật số.",
       },
-      { name: "author", content: "Trần Đình Nguyên Quân" },
+      { name: "author", content: "Trường THPT Tam Giang" },
       {
         property: "og:title",
-        content: "TamGiangPhysics — Nền tảng học tập & mô phỏng Vật lý hiện đại",
+        content: "Trường THPT Tam Giang — Nền tảng học tập & mô phỏng Vật lý hiện đại",
       },
       {
         property: "og:description",
         content:
-          "TamGiangPhysics: Nền tảng học tập và khám phá Vật lý trực quan, hiện đại mang phong cách phòng thí nghiệm kỹ thuật số.",
+          "Trường THPT Tam Giang: Nền tảng học tập và khám phá Vật lý trực quan, hiện đại mang phong cách phòng thí nghiệm kỹ thuật số.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -132,7 +132,7 @@ function RootShell({ children }: { children: ReactNode }) {
   });
 
   return (
-    <html lang="vi" {...importedDocument?.html}>
+    <html lang="vi" suppressHydrationWarning {...importedDocument?.html}>
       <head>
         <script
           dangerouslySetInnerHTML={{

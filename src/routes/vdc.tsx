@@ -17,7 +17,7 @@ import {
 export const Route = createFileRoute("/vdc")({
   head: () => ({
     meta: [
-      { title: "Bài toán Vận dụng cao (VDC) & Mô phỏng tương tác | TamGiangPhysics" },
+      { title: "Bài toán Vận dụng cao (VDC) & Mô phỏng tương tác | Trường THPT Tam Giang" },
       {
         name: "description",
         content:

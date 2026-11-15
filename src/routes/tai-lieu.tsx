@@ -20,17 +20,17 @@ import {
 export const Route = createFileRoute("/tai-lieu")({
   head: () => ({
     meta: [
-      { title: "Kho tài liệu Vật lý THPT | TamGiangPhysics" },
+      { title: "Kho tài liệu Vật lý THPT | Trường THPT Tam Giang" },
       {
         name: "description",
         content:
-          "Thư viện tài liệu Vật lý THPT TamGiangPhysics: Kho tài liệu Google Drive tổng hợp kiến thức, lý thuyết và công thức Vật lí THPT phục vụ quá trình học tập và ôn luyện.",
+          "Thư viện tài liệu Vật lý THPT Trường THPT Tam Giang: Kho tài liệu Google Drive tổng hợp kiến thức, lý thuyết và công thức Vật lí THPT phục vụ quá trình học tập và ôn luyện.",
       },
-      { property: "og:title", content: "Kho tài liệu Vật lý THPT | TamGiangPhysics" },
+      { property: "og:title", content: "Kho tài liệu Vật lý THPT | Trường THPT Tam Giang" },
       {
         property: "og:description",
         content:
-          "Thư viện tài liệu Vật lý THPT TamGiangPhysics: Kho tài liệu Google Drive tổng hợp kiến thức, lý thuyết và công thức Vật lí THPT phục vụ quá trình học tập và ôn luyện.",
+          "Thư viện tài liệu Vật lý THPT Trường THPT Tam Giang: Kho tài liệu Google Drive tổng hợp kiến thức, lý thuyết và công thức Vật lí THPT phục vụ quá trình học tập và ôn luyện.",
       },
     ],
   }),
@@ -194,8 +194,8 @@ function TaiLieuPage() {
 
             <p className="mx-auto max-w-xl text-xs leading-relaxed text-muted-foreground">
               Tri thức được hệ thống hóa – Kiến thức được kết nối – Tư duy được khai mở. Toàn bộ tài
-              liệu chính thức được lưu trữ tập trung trên Google Drive của TamGiangPhysics, truy cập
-              công khai và tải về nhanh chóng.
+              liệu chính thức được lưu trữ tập trung trên Google Drive của Trường THPT Tam Giang,
+              truy cập công khai và tải về nhanh chóng.
             </p>
 
             {/* Prominent Google Drive CTA Button */}
@@ -272,7 +272,7 @@ function TaiLieuPage() {
               <div className="relative h-[500px] w-full overflow-hidden rounded-xl border border-border bg-black/5 dark:bg-black/40">
                 <iframe
                   src={APP_CONFIG.googleDriveEmbedUrl}
-                  title="Google Drive TamGiangPhysics"
+                  title="Google Drive Trường THPT Tam Giang"
                   className="size-full border-0"
                   allow="fullscreen"
                 />
@@ -397,10 +397,10 @@ function TaiLieuPage() {
               <span>Cơ chế cập nhật tài liệu qua Google Drive</span>
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground max-w-3xl">
-              Kho tài liệu TamGiangPhysics hiện được kết nối trực tiếp với thư mục Google Drive
-              chính thức được cung cấp. Mọi tài liệu mới được tải lên thư mục này sẽ hiển thị ngay
-              cho học sinh khi mở liên kết Drive. Website không sử dụng đường dẫn tệp giả hoặc nút
-              tải giả.
+              Kho tài liệu Trường THPT Tam Giang hiện được kết nối trực tiếp với thư mục Google
+              Drive chính thức được cung cấp. Mọi tài liệu mới được tải lên thư mục này sẽ hiển thị
+              ngay cho học sinh khi mở liên kết Drive. Website không sử dụng đường dẫn tệp giả hoặc
+              nút tải giả.
             </p>
             <div className="pt-2">
               <a

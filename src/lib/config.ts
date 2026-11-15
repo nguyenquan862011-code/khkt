@@ -1,4 +1,4 @@
-export type AudioLicenseType = "cc-by-3.0" | "public-domain" | "unverified";
+export type AudioLicenseType = "cc-by-4.0" | "cc-by-3.0" | "public-domain" | "unverified";
 
 export interface AudioTrackConfig {
   id: string;
@@ -23,15 +23,16 @@ export interface AudioTrackConfig {
   sourceUrl?: string;
   attribution?: string;
   note?: string;
+  isCustom?: boolean;
 }
 
 export const APP_CONFIG = {
-  siteName: "TamGiangPhysics",
-  siteTitle: "TamGiangPhysics — Nền tảng học tập & Khảo sát Vật lý tương tác",
+  siteName: "Trường THPT Tam Giang",
+  siteTitle: "Trường THPT Tam Giang — Nền tảng học tập & Khảo sát Vật lý tương tác",
   slogan: "Biến kiến thức Vật lý thành trải nghiệm khám phá và thực nghiệm.",
-  developerName: "Trần Đình Nguyên Quân",
-  developerTitle: "Người phát triển TamGiangPhysics",
-  contactEmail: "nguyenquan862011@gmail.com",
+  developerName: "Trường THPT Tam Giang",
+  developerTitle: "Tổ Vật Lý · Trường THPT Tam Giang",
+  contactEmail: "",
   copyrightYear: 2026,
   googleDriveFolderUrl:
     "https://drive.google.com/drive/folders/1-80QRozdGMChyMQTfzu7IJoj5jSosztG?usp=sharing",
@@ -39,8 +40,8 @@ export const APP_CONFIG = {
     "https://drive.google.com/embeddedfolderview?id=1-80QRozdGMChyMQTfzu7IJoj5jSosztG#grid",
   totalLessons: 777,
   backgroundAudio: {
-    src: "/audio/gymnopedie-no-1.mp3",
-    trackName: "Gymnopédie No. 1",
+    src: "/assets/aistudio/1_fc13db2b.mp3",
+    trackName: "Relaxing Lofi - Dyo",
     defaultVolume: 0.25,
     storageKeyEnabled: "tamgiang_audio_enabled",
     storageKeyVolume: "tamgiang_audio_volume",
@@ -49,6 +50,91 @@ export const APP_CONFIG = {
     storageKeyRepeat: "tamgiang_audio_repeat",
     storageKeyShuffle: "tamgiang_audio_shuffle",
     playlist: [
+      {
+        id: "track-lofi-dyo",
+        title: "Relaxing Lofi - Dyo",
+        composer: "Sascha Ende (2024)",
+        artist: "Sascha Ende",
+        genre: "Lo-fi Study",
+        src: "/assets/aistudio/1_fc13db2b.mp3",
+        isAvailable: true,
+        license: "Creative Commons Attribution 4.0 (CC BY 4.0)",
+        licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+        licenseType: "cc-by-4.0",
+        sourceName: "ENDE.APP",
+        sourceUrl: "https://ende.app/en/song/12225-relaxing-lofi-dyo",
+        attribution:
+          "© 2024 Sascha Ende · Licensed under Creative Commons Attribution 4.0 (CC BY 4.0)",
+        note: "Giai điệu Lo-fi nhẹ nhàng giúp thư giãn và duy trì sự tập trung khi học tập, làm thí nghiệm Vật lý.",
+      },
+      {
+        id: "track-lofi-ena",
+        title: "Relaxing Lofi - Ena",
+        composer: "Sascha Ende (2024)",
+        artist: "Sascha Ende",
+        genre: "Lo-fi Study",
+        src: "/assets/aistudio/2_04dd1403.mp3",
+        isAvailable: true,
+        license: "Creative Commons Attribution 4.0 (CC BY 4.0)",
+        licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+        licenseType: "cc-by-4.0",
+        sourceName: "ENDE.APP",
+        sourceUrl: "https://ende.app/en/song/12224-relaxing-lofi-ena",
+        attribution:
+          "© 2024 Sascha Ende · Licensed under Creative Commons Attribution 4.0 (CC BY 4.0)",
+        note: "Nhịp điệu Chill êm dịu, phù hợp nghe nền khi đọc lý thuyết và phân tích đồ thị.",
+      },
+      {
+        id: "track-lofi-hexakaideca",
+        title: "Relaxing Lofi - Hexakaideca",
+        composer: "Sascha Ende (2025)",
+        artist: "Sascha Ende",
+        genre: "Chill",
+        src: "/assets/aistudio/3_69dbf097.mp3",
+        isAvailable: true,
+        license: "Creative Commons Attribution 4.0 (CC BY 4.0)",
+        licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+        licenseType: "cc-by-4.0",
+        sourceName: "ENDE.APP",
+        sourceUrl: "https://ende.app/en/song/13282-relaxing-lofi-hexakaideca",
+        attribution:
+          "© 2025 Sascha Ende · Licensed under Creative Commons Attribution 4.0 (CC BY 4.0)",
+        note: "Hòa âm Jazz Lounge & Lo-fi tinh tế, tạo không gian học tập thoải mái và truyền cảm hứng.",
+      },
+      {
+        id: "track-lofi-tessera",
+        title: "Relaxing Lofi - Tessera",
+        composer: "Sascha Ende (2024)",
+        artist: "Sascha Ende",
+        genre: "Lo-fi Study",
+        src: "/assets/aistudio/4_dc35f1b2.mp3",
+        isAvailable: true,
+        license: "Creative Commons Attribution 4.0 (CC BY 4.0)",
+        licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+        licenseType: "cc-by-4.0",
+        sourceName: "ENDE.APP",
+        sourceUrl: "https://ende.app/en/song/12257-relaxing-lofi-tessera",
+        attribution:
+          "© 2024 Sascha Ende · Licensed under Creative Commons Attribution 4.0 (CC BY 4.0)",
+        note: "Giai điệu Lo-fi sâu lắng hỗ trợ tư duy giải bài tập vận dụng cao.",
+      },
+      {
+        id: "track-lofi-triskaideca",
+        title: "Relaxing Lofi - Triskaideca",
+        composer: "Sascha Ende (2025)",
+        artist: "Sascha Ende",
+        genre: "Chill",
+        src: "/assets/aistudio/5_b0a97899.mp3",
+        isAvailable: true,
+        license: "Creative Commons Attribution 4.0 (CC BY 4.0)",
+        licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+        licenseType: "cc-by-4.0",
+        sourceName: "ENDE.APP",
+        sourceUrl: "https://ende.app/en/song/13164-relaxing-lofi-triskaideca",
+        attribution:
+          "© 2025 Sascha Ende · Licensed under Creative Commons Attribution 4.0 (CC BY 4.0)",
+        note: "Âm thanh Chill Beats nhẹ nhàng giúp giữ nhịp độ ổn định suốt buổi thực hành.",
+      },
       {
         id: "track-satie-gymnopedie-1",
         title: "Gymnopédie No. 1",
@@ -116,7 +202,7 @@ export const APP_CONFIG = {
       {
         id: "track-ambient-cosmic",
         title: "Space Ambient - Cosmic Focus",
-        artist: "TamGiang Acoustic Lab",
+        artist: "THPT Tam Giang Acoustic Lab",
         genre: "Space Ambient",
         src: "",
         isAvailable: false,
@@ -128,7 +214,7 @@ export const APP_CONFIG = {
       {
         id: "track-lofi-study",
         title: "Lo-fi Study Beats - Deep Work",
-        artist: "TamGiang Lofi",
+        artist: "THPT Tam Giang Lofi",
         genre: "Lo-fi Study",
         src: "",
         isAvailable: false,

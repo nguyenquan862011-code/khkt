@@ -19,7 +19,7 @@ import {
 export const Route = createFileRoute("/thiet-ke-thi-nghiem")({
   head: () => ({
     meta: [
-      { title: "Thiết kế Thí nghiệm (Experiment Designer) | TamGiangPhysics" },
+      { title: "Thiết kế Thí nghiệm (Experiment Designer) | Trường THPT Tam Giang" },
       {
         name: "description",
         content:

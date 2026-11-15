@@ -20,8 +20,10 @@ import {
   Search,
   Filter,
   RotateCcw,
+  Upload,
+  Trash2,
 } from "lucide-react";
-import { audioManager, type AudioState } from "@/lib/audio-manager";
+import { audioManager, getDefaultAudioState, type AudioState } from "@/lib/audio-manager";
 import type { AudioLicenseType } from "@/lib/config";
 
 interface AudioControllerProps {
@@ -36,7 +38,7 @@ function formatTime(seconds: number): string {
 }
 
 export function AudioController({ className = "" }: AudioControllerProps) {
-  const [audioState, setAudioState] = useState<AudioState>(audioManager.getState());
+  const [audioState, setAudioState] = useState<AudioState>(getDefaultAudioState);
   const [showPlayerModal, setShowPlayerModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"controls" | "playlist" | "licenses">("controls");
 
@@ -45,9 +47,14 @@ export function AudioController({ className = "" }: AudioControllerProps) {
   const [licenseFilter, setLicenseFilter] = useState<"all" | AudioLicenseType>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
+
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
+    void audioManager.hydrateCustomTracks();
+
     const unsubscribe = audioManager.subscribe((state) => {
       setAudioState(state);
     });
@@ -64,6 +71,19 @@ export function AudioController({ className = "" }: AudioControllerProps) {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+
+    const added = await audioManager.addCustomTrack(file);
+    if (added) {
+      setUploadStatus(`Đã tải lên: ${added.title}`);
+      setActiveTab("controls");
+      setTimeout(() => setUploadStatus(null), 4000);
+    }
+  };
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -98,6 +118,10 @@ export function AudioController({ className = "" }: AudioControllerProps) {
     [audioState.playlist],
   );
 
+  const ccBy4Count = useMemo(
+    () => audioState.playlist.filter((t) => t.licenseType === "cc-by-4.0").length,
+    [audioState.playlist],
+  );
   const ccByCount = useMemo(
     () => audioState.playlist.filter((t) => t.licenseType === "cc-by-3.0").length,
     [audioState.playlist],
@@ -163,12 +187,18 @@ export function AudioController({ className = "" }: AudioControllerProps) {
         {/* Status indicator tag */}
         <span
           className={`px-1 py-0.2 text-[9px] font-mono rounded ${
-            audioState.currentTrack.isAvailable
-              ? "text-[#C8ED78] bg-[#075C40]/50"
-              : "text-amber-300 bg-amber-900/40"
+            audioState.currentTrack.isCustom
+              ? "text-[#C8ED78] bg-[#16845A]/50"
+              : audioState.currentTrack.isAvailable
+                ? "text-[#C8ED78] bg-[#075C40]/50"
+                : "text-amber-300 bg-amber-900/40"
           }`}
         >
-          {audioState.currentTrack.isAvailable ? "CC/PD" : "Chờ tệp"}
+          {audioState.currentTrack.isCustom
+            ? "Cá nhân"
+            : audioState.currentTrack.isAvailable
+              ? "CC/PD"
+              : "Chờ tệp"}
         </span>
 
         {/* Quick Mute Toggle */}
@@ -224,9 +254,19 @@ export function AudioController({ className = "" }: AudioControllerProps) {
         </div>
       )}
 
+      {/* Hidden file input for custom user audio upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac"
+        onChange={handleFileUpload}
+        className="hidden"
+        aria-label="Tải tệp nhạc từ máy lên"
+      />
+
       {/* EXPANDED POPUP STUDIO & PLAYLIST DIALOG */}
       {showPlayerModal && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-96 rounded-2xl bg-[#0B1511]/95 border border-[#1B3025] p-3.5 shadow-2xl backdrop-blur-xl text-[#EDF5ED] transition-all">
+        <div className="absolute right-0 top-full mt-2 z-50 w-96 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-[#0B1511]/95 border border-[#1B3025] p-3.5 shadow-2xl backdrop-blur-xl text-[#EDF5ED] transition-all">
           {/* Header */}
           <div className="flex items-center justify-between pb-2 border-b border-[#1B3025]">
             <div className="flex items-center gap-2">
@@ -235,13 +275,22 @@ export function AudioController({ className = "" }: AudioControllerProps) {
               </div>
               <div>
                 <h3 className="text-xs font-semibold text-white tracking-wide">
-                  TamGiang Audio Studio
+                  Trường THPT Tam Giang · Audio Studio
                 </h3>
-                <p className="text-[10px] text-[#A5B7A8]">Chỉ sử dụng tệp có giấy phép mở hợp lệ</p>
+                <p className="text-[10px] text-[#A5B7A8]">Nhạc mở & tải tệp nhạc cá nhân của bạn</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1 rounded-lg bg-[#16845A]/25 border border-[#38A875]/40 px-2 py-1 text-[10px] font-medium text-[#C8ED78] hover:bg-[#16845A] hover:text-white transition-colors"
+                title="Đưa tệp nhạc từ máy lên phát ngay"
+              >
+                <Upload className="size-3" />
+                <span>Tải nhạc lên</span>
+              </button>
               <button
                 type="button"
                 onClick={() => setShowPlayerModal(false)}
@@ -252,6 +301,13 @@ export function AudioController({ className = "" }: AudioControllerProps) {
               </button>
             </div>
           </div>
+
+          {uploadStatus && (
+            <div className="mt-2 rounded-lg border border-[#38A875]/40 bg-[#16845A]/20 px-2.5 py-1.5 text-[11px] text-[#C8ED78] flex items-center gap-1.5">
+              <CheckCircle2 className="size-3.5 shrink-0" />
+              <span className="truncate">{uploadStatus}</span>
+            </div>
+          )}
 
           {/* Navigation Tabs */}
           <div className="flex items-center gap-1 mt-2.5 bg-[#08110D] p-1 rounded-lg border border-[#1B3025] text-[11px]">
@@ -503,26 +559,37 @@ export function AudioController({ className = "" }: AudioControllerProps) {
           {/* TAB 2: PLAYLIST VIEW WITH ADVANCED FILTERING */}
           {activeTab === "playlist" && (
             <div className="mt-3 space-y-2.5">
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#A5B7A8]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Tìm theo tên bài, tác giả, thể loại..."
-                  className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-[#08110D] border border-[#1B3025] text-xs text-white placeholder-[#A5B7A8]/60 focus:outline-none focus:border-[#38A875] transition-colors"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-[#A5B7A8] hover:text-white"
-                    aria-label="Xóa từ khóa tìm kiếm"
-                  >
-                    <X className="size-3" />
-                  </button>
-                )}
+              {/* Upload & Search Bar */}
+              <div className="flex items-center gap-1.5">
+                <div className="relative flex-1">
+                  <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#A5B7A8]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Tìm theo tên bài, tác giả, thể loại..."
+                    className="w-full pl-8 pr-7 py-1.5 rounded-lg bg-[#08110D] border border-[#1B3025] text-xs text-white placeholder-[#A5B7A8]/60 focus:outline-none focus:border-[#38A875] transition-colors"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[#A5B7A8] hover:text-white"
+                      aria-label="Xóa từ khóa tìm kiếm"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-[#16845A] px-2.5 py-1.5 text-[11px] font-medium text-white hover:bg-[#38A875] transition-colors"
+                  title="Chọn tệp MP3 / WAV / M4A / OGG từ thiết bị"
+                >
+                  <Upload className="size-3" />
+                  <span>Đưa nhạc lên</span>
+                </button>
               </div>
 
               {/* Status Filter Row */}
@@ -601,6 +668,17 @@ export function AudioController({ className = "" }: AudioControllerProps) {
                   </button>
                   <button
                     type="button"
+                    onClick={() => setLicenseFilter("cc-by-4.0")}
+                    className={`px-2 py-0.5 rounded-md font-medium shrink-0 transition-colors ${
+                      licenseFilter === "cc-by-4.0"
+                        ? "bg-[#16845A] text-white shadow-sm"
+                        : "bg-[#15271E]/60 text-[#72CF91] hover:text-white border border-[#1B3025]"
+                    }`}
+                  >
+                    CC BY 4.0 ({ccBy4Count})
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setLicenseFilter("cc-by-3.0")}
                     className={`px-2 py-0.5 rounded-md font-medium shrink-0 transition-colors ${
                       licenseFilter === "cc-by-3.0"
@@ -669,11 +747,9 @@ export function AudioController({ className = "" }: AudioControllerProps) {
                     const hasValidFile = track.isAvailable && Boolean(track.src);
 
                     return (
-                      <button
+                      <div
                         key={track.id}
-                        type="button"
-                        onClick={() => audioManager.selectTrack(track.id)}
-                        className={`w-full flex items-center justify-between rounded-lg p-2 text-left transition-all ${
+                        className={`w-full flex items-center justify-between rounded-lg p-2 transition-all ${
                           isSelected
                             ? hasValidFile
                               ? "bg-[#16845A]/25 border border-[#38A875]/60 text-white"
@@ -681,25 +757,36 @@ export function AudioController({ className = "" }: AudioControllerProps) {
                             : "bg-[#15271E]/50 hover:bg-[#15271E] border border-transparent text-[#EDF5ED]/90"
                         }`}
                       >
-                        <div className="min-w-0 flex-1 pr-2">
+                        <button
+                          type="button"
+                          onClick={() => audioManager.selectTrack(track.id)}
+                          className="min-w-0 flex-1 pr-2 text-left"
+                        >
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span className="rounded bg-[#0B1511] px-1.5 py-0.2 text-[9px] font-mono text-[#C8ED78]">
-                              {track.genre}
+                              {track.isCustom ? "Cá nhân" : track.genre}
                             </span>
                             <span
                               className={`rounded px-1 py-0.2 text-[8px] font-mono border ${
-                                track.licenseType === "public-domain"
-                                  ? "bg-[#075C40]/40 text-[#72CF91] border-[#38A875]/30"
-                                  : track.licenseType === "cc-by-3.0"
-                                    ? "bg-[#16845A]/30 text-[#C8ED78] border-[#38A875]/40"
-                                    : "bg-amber-900/30 text-amber-300 border-amber-600/30"
+                                track.isCustom
+                                  ? "bg-[#16845A]/40 text-[#C8ED78] border-[#C8ED78]/40"
+                                  : track.licenseType === "public-domain"
+                                    ? "bg-[#075C40]/40 text-[#72CF91] border-[#38A875]/30"
+                                    : track.licenseType === "cc-by-3.0" ||
+                                        track.licenseType === "cc-by-4.0"
+                                      ? "bg-[#16845A]/30 text-[#C8ED78] border-[#38A875]/40"
+                                      : "bg-amber-900/30 text-amber-300 border-amber-600/30"
                               }`}
                             >
-                              {track.licenseType === "public-domain"
-                                ? "Public Domain"
-                                : track.licenseType === "cc-by-3.0"
-                                  ? "CC BY 3.0"
-                                  : "Chưa xác minh"}
+                              {track.isCustom
+                                ? "Tải lên"
+                                : track.licenseType === "public-domain"
+                                  ? "Public Domain"
+                                  : track.licenseType === "cc-by-4.0"
+                                    ? "CC BY 4.0"
+                                    : track.licenseType === "cc-by-3.0"
+                                      ? "CC BY 3.0"
+                                      : "Chưa xác minh"}
                             </span>
                             <p className="text-xs font-medium truncate">{track.title}</p>
                           </div>
@@ -712,27 +799,44 @@ export function AudioController({ className = "" }: AudioControllerProps) {
                               </span>
                             )}
                           </p>
-                        </div>
+                        </button>
 
-                        <div className="shrink-0 flex items-center gap-1 text-[10px]">
-                          {hasValidFile ? (
-                            isSelected && isPlaying ? (
-                              <span className="flex items-center gap-1 text-[#C8ED78] font-semibold font-mono">
-                                <span className="size-1.5 rounded-full bg-[#C8ED78] animate-ping" />
-                                Đang phát
-                              </span>
+                        <div className="shrink-0 flex items-center gap-1.5 text-[10px]">
+                          <button
+                            type="button"
+                            onClick={() => audioManager.selectTrack(track.id)}
+                            className="shrink-0"
+                          >
+                            {hasValidFile ? (
+                              isSelected && isPlaying ? (
+                                <span className="flex items-center gap-1 text-[#C8ED78] font-semibold font-mono">
+                                  <span className="size-1.5 rounded-full bg-[#C8ED78] animate-ping" />
+                                  Đang phát
+                                </span>
+                              ) : (
+                                <span className="text-[#72CF91] font-medium bg-[#075C40]/30 px-1.5 py-0.5 rounded border border-[#38A875]/30">
+                                  Phát bài
+                                </span>
+                              )
                             ) : (
-                              <span className="text-[#72CF91] font-medium bg-[#075C40]/30 px-1.5 py-0.5 rounded border border-[#38A875]/30">
-                                Phát bài
+                              <span className="text-amber-400/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                Chưa có tệp
                               </span>
-                            )
-                          ) : (
-                            <span className="text-amber-400/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                              Chưa có tệp
-                            </span>
+                            )}
+                          </button>
+                          {track.isCustom && (
+                            <button
+                              type="button"
+                              onClick={() => void audioManager.removeCustomTrack(track.id)}
+                              className="rounded p-1 text-[#A5B7A8] hover:bg-red-500/20 hover:text-red-300 transition-colors"
+                              title="Xóa bài nhạc đã tải lên"
+                              aria-label={`Xóa ${track.title}`}
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
                           )}
                         </div>
-                      </button>
+                      </div>
                     );
                   })
                 )}
@@ -747,13 +851,13 @@ export function AudioController({ className = "" }: AudioControllerProps) {
               <div className="rounded-xl bg-[#075C40]/20 border border-[#38A875]/30 p-2.5">
                 <div className="flex items-center gap-1.5 text-[#72CF91] font-semibold text-[11px]">
                   <ShieldCheck className="size-3.5" />
-                  <span>Chính sách Bản quyền Âm thanh TamGiangPhysics</span>
+                  <span>Chính sách Bản quyền Âm thanh — Trường THPT Tam Giang</span>
                 </div>
                 <p className="mt-1 text-[10px] text-[#EDF5ED]/80 leading-relaxed">
-                  TamGiangPhysics tuân thủ nghiêm ngặt luật sở hữu trí tuệ: chỉ tích hợp các tệp âm
-                  thanh có giấy phép tự do phù hợp (Creative Commons CC BY, CC0, Public Domain) hoặc
-                  do nền tảng tự khởi tạo. Các tác phẩm chưa xác minh hoặc thuộc bản quyền thương
-                  mại độc quyền được bảo toàn trạng thái{" "}
+                  Trường THPT Tam Giang tuân thủ nghiêm ngặt luật sở hữu trí tuệ: chỉ tích hợp các
+                  tệp âm thanh có giấy phép tự do phù hợp (Creative Commons CC BY, CC0, Public
+                  Domain) hoặc do nền tảng tự khởi tạo. Các tác phẩm chưa xác minh hoặc thuộc bản
+                  quyền thương mại độc quyền được bảo toàn trạng thái{" "}
                   <strong className="text-amber-300">Chưa có tệp</strong> và không tải tệp trái
                   phép.
                 </p>
@@ -779,7 +883,11 @@ export function AudioController({ className = "" }: AudioControllerProps) {
                         </p>
                       </div>
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-mono bg-[#16845A]/30 text-[#C8ED78] border border-[#38A875]/40 shrink-0">
-                        {track.licenseType === "public-domain" ? "Public Domain" : "CC BY 3.0"}
+                        {track.licenseType === "public-domain"
+                          ? "Public Domain"
+                          : track.licenseType === "cc-by-4.0"
+                            ? "CC BY 4.0"
+                            : "CC BY 3.0"}
                       </span>
                     </div>
 
@@ -856,7 +964,7 @@ export function AudioController({ className = "" }: AudioControllerProps) {
 }
 
 export function AutoplayPromptBanner() {
-  const [audioState, setAudioState] = useState<AudioState>(audioManager.getState());
+  const [audioState, setAudioState] = useState<AudioState>(getDefaultAudioState);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {

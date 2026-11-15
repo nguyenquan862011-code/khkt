@@ -20,13 +20,13 @@ import {
 export const Route = createFileRoute("/thi-nghiem-kinh-dien")({
   head: () => ({
     meta: [
-      { title: "Thí nghiệm Vật lý Kinh điển | TamGiangPhysics" },
+      { title: "Thí nghiệm Vật lý Kinh điển | Trường THPT Tam Giang" },
       {
         name: "description",
         content:
           "Thư viện 30 thí nghiệm kinh điển làm thay đổi lịch sử Vật lý nhân loại: Galilei, Newton, Young, Coulomb, Faraday, Millikan, Rutherford, Bohr với mô phỏng tương tác trực quan.",
       },
-      { property: "og:title", content: "Thí nghiệm Vật lý Kinh điển | TamGiangPhysics" },
+      { property: "og:title", content: "Thí nghiệm Vật lý Kinh điển | Trường THPT Tam Giang" },
       {
         property: "og:description",
         content:

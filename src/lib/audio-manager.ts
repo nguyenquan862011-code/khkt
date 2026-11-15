@@ -19,14 +19,8 @@ export interface AudioState {
 
 type AudioListener = (state: AudioState) => void;
 
-export class BackgroundAudioManager {
-  private audio: HTMLAudioElement | null = null;
-  private listeners: Set<AudioListener> = new Set();
-  private playlist: AudioTrackConfig[] = APP_CONFIG.backgroundAudio.playlist;
-  private currentTrackIndex: number = 0;
-  private previousVolume: number = APP_CONFIG.backgroundAudio.defaultVolume;
-
-  private state: AudioState = {
+export function getDefaultAudioState(): AudioState {
+  return {
     isPlaying: false,
     isEnabled: true,
     volume: APP_CONFIG.backgroundAudio.defaultVolume,
@@ -42,6 +36,93 @@ export class BackgroundAudioManager {
     isShuffle: false,
     trackNotice: null,
   };
+}
+
+const CUSTOM_AUDIO_DB_NAME = "tamgiang_custom_audio_db";
+const CUSTOM_AUDIO_STORE_NAME = "tracks";
+
+interface StoredCustomAudioRecord {
+  id: string;
+  title: string;
+  mimeType: string;
+  blob: Blob;
+  createdAt: number;
+}
+
+function openCustomAudioDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined" || typeof indexedDB === "undefined") {
+      reject(new Error("IndexedDB unavailable"));
+      return;
+    }
+    const req = indexedDB.open(CUSTOM_AUDIO_DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(CUSTOM_AUDIO_STORE_NAME)) {
+        db.createObjectStore(CUSTOM_AUDIO_STORE_NAME, { keyPath: "id" });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error("Failed to open IndexedDB"));
+  });
+}
+
+async function saveCustomTrackToDb(record: StoredCustomAudioRecord): Promise<void> {
+  try {
+    const db = await openCustomAudioDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(CUSTOM_AUDIO_STORE_NAME, "readwrite");
+      tx.objectStore(CUSTOM_AUDIO_STORE_NAME).put(record);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  } catch (err) {
+    console.warn("[TamGiang Audio] Could not persist custom track:", err);
+  }
+}
+
+async function loadCustomTracksFromDb(): Promise<StoredCustomAudioRecord[]> {
+  try {
+    const db = await openCustomAudioDb();
+    const records = await new Promise<StoredCustomAudioRecord[]>((resolve, reject) => {
+      const tx = db.transaction(CUSTOM_AUDIO_STORE_NAME, "readonly");
+      const req = tx.objectStore(CUSTOM_AUDIO_STORE_NAME).getAll();
+      req.onsuccess = () => resolve((req.result as StoredCustomAudioRecord[]) || []);
+      req.onerror = () => reject(req.error);
+    });
+    db.close();
+    return records.sort((a, b) => b.createdAt - a.createdAt);
+  } catch {
+    return [];
+  }
+}
+
+async function deleteCustomTrackFromDb(id: string): Promise<void> {
+  try {
+    const db = await openCustomAudioDb();
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(CUSTOM_AUDIO_STORE_NAME, "readwrite");
+      tx.objectStore(CUSTOM_AUDIO_STORE_NAME).delete(id);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  } catch (err) {
+    console.warn("[TamGiang Audio] Could not delete custom track:", err);
+  }
+}
+
+export class BackgroundAudioManager {
+  private audio: HTMLAudioElement | null = null;
+  private listeners: Set<AudioListener> = new Set();
+  private playlist: AudioTrackConfig[] = [...APP_CONFIG.backgroundAudio.playlist];
+  private currentTrackIndex: number = 0;
+  private previousVolume: number = APP_CONFIG.backgroundAudio.defaultVolume;
+  private customObjectUrls: Map<string, string> = new Map();
+  private customTracksHydrated: boolean = false;
+
+  private state: AudioState = getDefaultAudioState();
 
   private isInitialized: boolean = false;
 
@@ -49,6 +130,151 @@ export class BackgroundAudioManager {
     if (typeof window !== "undefined") {
       this.initFromStorage();
     }
+  }
+
+  public async hydrateCustomTracks(): Promise<void> {
+    if (typeof window === "undefined" || this.customTracksHydrated) return;
+    this.customTracksHydrated = true;
+
+    const records = await loadCustomTracksFromDb();
+    if (records.length === 0) return;
+
+    const customTracks: AudioTrackConfig[] = records.map((rec) => {
+      const url = this.customObjectUrls.get(rec.id) || URL.createObjectURL(rec.blob);
+      this.customObjectUrls.set(rec.id, url);
+      return {
+        id: rec.id,
+        title: rec.title,
+        artist: "Nhạc tải lên của bạn",
+        genre: "Chill",
+        src: url,
+        isAvailable: true,
+        license: "Tệp cá nhân tải lên",
+        licenseType: "public-domain",
+        sourceName: "Thiết bị người dùng (Lưu cục bộ)",
+        note: "Tệp nhạc do bạn tải lên và được lưu trong trình duyệt để phát xuyên suốt khi học tập.",
+        isCustom: true,
+      };
+    });
+
+    this.playlist = [...customTracks, ...APP_CONFIG.backgroundAudio.playlist];
+    this.state.playlist = this.playlist;
+
+    try {
+      const storedTrackId = localStorage.getItem(APP_CONFIG.backgroundAudio.storageKeyTrack);
+      const targetId = storedTrackId || customTracks[0]?.id;
+      const idx = targetId ? this.playlist.findIndex((t) => t.id === targetId) : -1;
+      if (idx !== -1) {
+        this.currentTrackIndex = idx;
+        this.state.currentTrack = this.playlist[idx];
+        const audio = this.getAudio();
+        if (audio && this.state.currentTrack.src && !this.state.isPlaying) {
+          audio.src = this.state.currentTrack.src;
+        }
+      }
+    } catch {
+      // ignore storage access issues
+    }
+
+    this.notify();
+  }
+
+  public async addCustomTrack(file: File): Promise<AudioTrackConfig | null> {
+    if (typeof window === "undefined" || !file) return null;
+
+    const cleanTitle =
+      file.name
+        .replace(/\.[^/.]+$/, "")
+        .replace(/[_-]+/g, " ")
+        .trim() || "Nhạc tải lên";
+    const id = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const blob = file.slice(0, file.size, file.type || "audio/mpeg");
+    const objectUrl = URL.createObjectURL(blob);
+    this.customObjectUrls.set(id, objectUrl);
+
+    const track: AudioTrackConfig = {
+      id,
+      title: cleanTitle,
+      artist: "Nhạc tải lên của bạn",
+      genre: "Chill",
+      src: objectUrl,
+      isAvailable: true,
+      license: "Tệp cá nhân tải lên",
+      licenseType: "public-domain",
+      sourceName: "Thiết bị người dùng (Lưu cục bộ)",
+      note: "Tệp nhạc do bạn tải lên và được lưu trong trình duyệt để phát xuyên suốt khi học tập.",
+      isCustom: true,
+    };
+
+    await saveCustomTrackToDb({
+      id,
+      title: cleanTitle,
+      mimeType: file.type || "audio/mpeg",
+      blob,
+      createdAt: Date.now(),
+    });
+
+    this.playlist = [track, ...this.playlist.filter((t) => t.id !== id)];
+    this.state.playlist = this.playlist;
+    this.currentTrackIndex = 0;
+    this.state.currentTrack = track;
+    this.state.trackNotice = null;
+    this.state.isEnabled = true;
+
+    try {
+      localStorage.setItem(APP_CONFIG.backgroundAudio.storageKeyTrack, id);
+    } catch {
+      // ignore
+    }
+
+    const audio = this.getAudio();
+    if (audio) {
+      audio.src = objectUrl;
+      audio.currentTime = 0;
+    }
+
+    await this.play();
+    return track;
+  }
+
+  public async removeCustomTrack(trackId: string): Promise<void> {
+    const target = this.playlist.find((t) => t.id === trackId && t.isCustom);
+    if (!target) return;
+
+    const url = this.customObjectUrls.get(trackId);
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.customObjectUrls.delete(trackId);
+    }
+
+    await deleteCustomTrackFromDb(trackId);
+
+    const wasCurrent = this.state.currentTrack.id === trackId;
+    this.playlist = this.playlist.filter((t) => t.id !== trackId);
+    this.state.playlist = this.playlist;
+
+    if (wasCurrent) {
+      const nextTrack = this.getAvailableTracks()[0] || this.playlist[0];
+      this.currentTrackIndex = Math.max(
+        0,
+        this.playlist.findIndex((t) => t.id === nextTrack.id),
+      );
+      this.state.currentTrack = nextTrack;
+      if (this.audio && nextTrack?.src) {
+        this.audio.src = nextTrack.src;
+        this.audio.currentTime = 0;
+        if (this.state.isPlaying) {
+          this.play().catch((err) => console.warn(err));
+        }
+      }
+    } else {
+      this.currentTrackIndex = Math.max(
+        0,
+        this.playlist.findIndex((t) => t.id === this.state.currentTrack.id),
+      );
+    }
+
+    this.notify();
   }
 
   public getAvailableTracks(): AudioTrackConfig[] {
@@ -285,9 +511,10 @@ export class BackgroundAudioManager {
       }
     } else {
       this.state.trackNotice = null;
-      const expectedUrl = window.location.origin + this.state.currentTrack.src;
-      if (audio.src !== expectedUrl && audio.src !== this.state.currentTrack.src) {
-        audio.src = this.state.currentTrack.src;
+      const trackSrc = this.state.currentTrack.src;
+      const expectedUrl = trackSrc.startsWith("/") ? window.location.origin + trackSrc : trackSrc;
+      if (audio.src !== expectedUrl && audio.src !== trackSrc) {
+        audio.src = trackSrc;
       }
     }
 

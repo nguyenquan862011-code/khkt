@@ -42,21 +42,21 @@ export function Logo({
       {/* Brand Wordmark */}
       {variant !== "icon" && (
         <div className="flex flex-col leading-none">
-          <div className={`font-semibold tracking-tight ${currentSize.text} text-inherit`}>
-            <span>TamGiang</span>
-            <span className="text-[#38A875] dark:text-[#72CF91] font-bold ml-0.5">Physics</span>
+          <div
+            className={`font-semibold tracking-tight whitespace-nowrap ${currentSize.text} text-inherit`}
+          >
+            <span>Trường THPT</span>
+            <span className="text-[#38A875] dark:text-[#72CF91] font-bold ml-1">Tam Giang</span>
           </div>
           {showTagline ? (
             <span
               className={`font-mono tracking-wider text-[#63B77A] dark:text-[#72CF91] uppercase mt-1 ${currentSize.sub}`}
             >
-              THPT Tam Giang · Digital Science Lab
+              Phòng Thí Nghiệm Vật Lý Số
             </span>
           ) : (
-            <span
-              className={`text-inherit opacity-65 text-[10px] mt-0.5 font-medium tracking-tight`}
-            >
-              Trường THPT Tam Giang
+            <span className="text-inherit opacity-65 text-[10px] mt-0.5 font-medium tracking-tight whitespace-nowrap">
+              Phòng Thí Nghiệm Vật Lý Số
             </span>
           )}
         </div>

@@ -103,7 +103,8 @@ export default {
           return new Response(
             JSON.stringify({
               success: true,
-              message: "Bài làm đã được chấm điểm và lưu vào hệ thống TamGiangPhysics thành công.",
+              message:
+                "Bài làm đã được chấm điểm và lưu vào hệ thống Trường THPT Tam Giang thành công.",
               submissionId: submissionItem.id,
               data: submissionItem,
             }),
@@ -137,9 +138,16 @@ export default {
       );
     }
 
-    // 2. Seamless proxy and rebranding for interactive physics simulations from vatly.ai
+    // 2. Seamless proxy and rebranding for interactive physics simulations
     if (url.pathname.startsWith("/api/mo-phong/")) {
-      const targetUrl = "https://vatly.ai" + url.pathname + url.search;
+      let proxyPath = url.pathname;
+      const decodedTail = decodeURIComponent(proxyPath.slice("/api/mo-phong/".length));
+      if (decodedTail.startsWith("https://vatly.ai/api/mo-phong/")) {
+        proxyPath = "/api/mo-phong/" + decodedTail.slice("https://vatly.ai/api/mo-phong/".length);
+      } else if (decodedTail.startsWith("http://vatly.ai/api/mo-phong/")) {
+        proxyPath = "/api/mo-phong/" + decodedTail.slice("http://vatly.ai/api/mo-phong/".length);
+      }
+      const targetUrl = "https://vatly.ai" + proxyPath + url.search;
       try {
         const upstream = await fetch(targetUrl, {
           method: request.method,
@@ -151,9 +159,15 @@ export default {
 
         const headers = new Headers(upstream.headers);
         headers.set("Access-Control-Allow-Origin", "*");
+        // Node fetch transparently decompresses gzip/br/deflate streams, so forwarding
+        // upstream Content-Encoding or Content-Length causes ERR_CONTENT_DECODING_FAILED.
+        headers.delete("content-encoding");
+        headers.delete("content-length");
+        headers.delete("transfer-encoding");
         // Keep simulation running cleanly without third-party iframe frame-ancestor blocks
         headers.delete("X-Frame-Options");
         headers.delete("Content-Security-Policy");
+        headers.delete("Content-Security-Policy-Report-Only");
 
         const contentType = upstream.headers.get("content-type") || "";
 
@@ -168,27 +182,35 @@ export default {
         // Rebrand HTML and inject submission bridge & confirm modal polyfill
         let html = await upstream.text();
 
-        // 2a. Rebrand header logo with official TamGiang school emblem
+        // 2a. Rebrand header logo with official Trường THPT Tam Giang emblem
         html = html.replace(
-          /<span class="logo"><img alt="[^"]*" src="data:image\/svg\+xml;base64,[^"]*"><\/span>/gi,
-          `<span class="logo" style="background:transparent;display:flex;align-items:center;justify-content:center"><img alt="Logo TamGiangPhysics" src="/logo-tamgiang.png" style="width:48px;height:48px;border-radius:50%;object-fit:cover;box-shadow:0 0 10px rgba(54,217,232,0.5)"></span>`,
+          /<span class="logo">[\s\S]*?<\/span>/gi,
+          `<span class="logo" style="background:transparent;display:flex;align-items:center;justify-content:center;padding:2px"><img alt="Logo Trường THPT Tam Giang" src="/logo-tamgiang.png" style="width:48px;height:48px;border-radius:50%;object-fit:cover;box-shadow:0 0 10px rgba(56,168,117,0.45)"></span>`,
         );
 
         // 2b. Rebrand slogan
         html = html.replace(
           /<p class="slogan">[^<]*<\/p>/gi,
-          `<p class="slogan" style="color:#36D9E8;font-weight:700">TamGiangPhysics — Khám phá khoa học thực nghiệm</p>`,
+          `<p class="slogan" style="color:#72CF91;font-weight:700">Trường THPT Tam Giang — Phòng Thí Nghiệm Vật Lý Số</p>`,
         );
 
-        // 2c. Rebrand footer
+        // 2c. Rebrand footer (both <div class="foot"> and <footer class="foot">)
         html = html.replace(
-          /<footer class="foot"><b>[^<]*<\/b><span>[^<]*<\/span><\/footer>/gi,
-          `<footer class="foot"><b>TamGiangPhysics — Nền tảng học tập & Khảo sát Vật lý số</b><span>Email: nguyenquan862011@gmail.com · © 2026 Trần Đình Nguyên Quân</span></footer>`,
+          /<(div|footer) class="foot">[\s\S]*?<\/\1>/gi,
+          `<$1 class="foot"><b>Trường THPT Tam Giang — Phòng Thí Nghiệm Vật Lý Số</b><span>Cổng học tập & Khảo sát Vật lý trực quan THPT</span></$1>`,
         );
 
-        // 2d. Clean up any remaining legacy branding text
-        html = html.replace(/Vật Lý Siêu Nhẩm/g, "TamGiangPhysics");
-        html = html.replace(/VậtLý\.ai/g, "TamGiangPhysics");
+        // 2d. Clean up any remaining legacy branding, hotline, or external simulation links
+        html = html.replace(/Hệ thống giáo dục Vật Lý Siêu Nhẩm/gi, "Trường THPT Tam Giang");
+        html = html.replace(/Vật Lý Siêu Nhẩm/gi, "Trường THPT Tam Giang");
+        html = html.replace(/VậtLý\.ai|VatLy\.ai/gi, "Trường THPT Tam Giang");
+        html = html.replace(
+          /Hotline:\s*0978\s*650\s*726\s*-\s*0326\s*425\s*111/gi,
+          "Trường THPT Tam Giang",
+        );
+        html = html.replace(/https?:\/\/vatly\.ai\/api\/mo-phong\//gi, "/api/mo-phong/");
+        html = html.replace(/<script[^>]*cloudflareinsights\.com[^>]*>[\s\S]*?<\/script>/gi, "");
+        html = html.replace(/<script[^>]*>[\s\S]*?\/cdn-cgi\/rum[\s\S]*?<\/script>/gi, "");
 
         // 2e. Inject script bridge: safe confirm dialog, submission interceptor, postMessage, & server persistence
         const bridgeScript = `

@@ -41,6 +41,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   // Submissions and Grading state
   const [submissions, setSubmissions] = useState<StoredSubmission[]>([]);
@@ -53,18 +54,57 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
     setSubmissions(getSubmissionsHistory(lesson.fullPath));
   }, [lesson.fullPath]);
 
-  // Reset loading and error when lesson changes or reloads
+  // Reset loading and error when lesson changes or reloads, and detect pre-hydration iframe loads
   useEffect(() => {
-    setIsLoading(true);
     setHasError(false);
     setLoadTimedOut(false);
 
+    const checkIframeReady = (): boolean => {
+      const iframe = iframeRef.current;
+      if (!iframe) return false;
+      try {
+        const doc = iframe.contentDocument;
+        if (
+          doc &&
+          doc.URL &&
+          doc.URL.includes("/api/mo-phong/") &&
+          (doc.readyState === "complete" ||
+            (doc.readyState === "interactive" && (doc.body?.innerText?.trim().length ?? 0) > 20))
+        ) {
+          setIsLoading(false);
+          setLoadTimedOut(false);
+          return true;
+        }
+      } catch {
+        // Ignore transient access error
+      }
+      return false;
+    };
+
+    if (checkIframeReady()) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Poll briefly in case browser completed iframe load before React attached onLoad during hydration
+    const pollInterval = setInterval(() => {
+      if (checkIframeReady()) {
+        clearInterval(pollInterval);
+      }
+    }, 120);
+
     // Watchdog timer: If iframe doesn't load within 12s, offer fallback
     const timer = setTimeout(() => {
-      setLoadTimedOut(true);
+      if (!checkIframeReady()) {
+        setLoadTimedOut(true);
+      }
     }, 12000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearInterval(pollInterval);
+      clearTimeout(timer);
+    };
   }, [lesson.fullPath, reloadKey]);
 
   // Fullscreen change listener
@@ -117,10 +157,17 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
     const handleMessage = (e: MessageEvent) => {
       if (!e.data || typeof e.data !== "object") return;
 
-      if (e.data.type === "VATLY_SUBMIT_RESULT" || e.data.type === "EXAM_SUBMISSION_RESULT") {
+      if (
+        e.data.type === "TAMGIANG_SUBMISSION_RESULT" ||
+        e.data.type === "VATLY_SUBMIT_RESULT" ||
+        e.data.type === "EXAM_SUBMISSION_RESULT"
+      ) {
         const payload = e.data.payload as SubmissionPayload;
         if (payload) {
-          const stored = saveSubmission(lesson.fullPath, payload);
+          const stored = saveSubmission({
+            ...payload,
+            lessonPath: payload.lessonPath || lesson.fullPath,
+          });
           setSubmissions((prev) => [stored, ...prev.filter((s) => s.id !== stored.id)]);
           setActiveResult(stored);
         }
@@ -151,7 +198,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
     setReloadKey((k) => k + 1);
   };
 
-  const proxiedSimulationUrl = `/api/mo-phong/${encodeURIComponent(lesson.simulationUrl)}`;
+  const proxiedSimulationUrl = `/api/mo-phong/${lesson.fullPath}`;
   const latestAttempt = submissions[0];
 
   return (
@@ -187,7 +234,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
                       Thử tải lại
                     </button>
                     <a
-                      href={lesson.simulationUrl}
+                      href={proxiedSimulationUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 rounded-lg bg-[#16845A] px-2.5 py-1 text-xs font-medium text-white hover:bg-[#38A875]"
@@ -225,7 +272,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
                   <RefreshCw className="size-3.5" /> Thử lại
                 </button>
                 <a
-                  href={lesson.simulationUrl}
+                  href={proxiedSimulationUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-lg bg-[#16845A] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#38A875]"
@@ -237,6 +284,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
           </div>
         ) : (
           <iframe
+            ref={iframeRef}
             key={`${lesson.fullPath}-${reloadKey}`}
             src={proxiedSimulationUrl}
             title={lesson.name}
@@ -373,7 +421,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
           </button>
 
           <a
-            href={lesson.simulationUrl}
+            href={proxiedSimulationUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="flex size-8 items-center justify-center rounded-md text-white/60 hover:bg-white/10 hover:text-white transition-colors"
@@ -456,7 +504,7 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
                     NỘP BÀI THÀNH CÔNG & ĐÃ CHẤM ĐIỂM
                   </h3>
                   <p className="text-xs text-[#72CF91] font-mono">
-                    Hệ thống TamGiangPhysics đã ghi nhận bài làm
+                    Hệ thống Trường THPT Tam Giang đã ghi nhận bài làm
                   </p>
                 </div>
               </div>

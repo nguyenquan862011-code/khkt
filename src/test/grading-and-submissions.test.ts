@@ -90,8 +90,9 @@ describe("Cấu hình Kho tài liệu Google Drive & Số lượng Bài học", 
     expect(APP_CONFIG.totalLessons).toBe(777);
   });
 
-  it("thông tin liên hệ chuẩn hóa", () => {
-    expect(APP_CONFIG.contactEmail).toBe("nguyenquan862011@gmail.com");
-    expect(APP_CONFIG.developerName).toBe("Trần Đình Nguyên Quân");
+  it("thông tin thương hiệu Trường THPT Tam Giang chuẩn hóa", () => {
+    expect(APP_CONFIG.siteName).toBe("Trường THPT Tam Giang");
+    expect(APP_CONFIG.developerName).toBe("Trường THPT Tam Giang");
+    expect(APP_CONFIG.contactEmail).toBe("");
   });
 });

@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import fs from "fs";
 import path from "path";
 import { APP_CONFIG } from "@/lib/config";
-import { BackgroundAudioManager } from "@/lib/audio-manager";
+import { BackgroundAudioManager, getDefaultAudioState } from "@/lib/audio-manager";
 
 describe("TamGiangPhysics Design System & Audio System", () => {
   it("verifies exact Light Mode and Dark Mode color tokens in styles.css", () => {
@@ -44,17 +44,18 @@ describe("TamGiangPhysics Design System & Audio System", () => {
     expect(cssContent).toContain("filter: none !important");
   });
 
-  it("verifies verified open-license audio files exist in public/audio directory", () => {
-    const audioDir = path.resolve(__dirname, "../../public/audio");
+  it("verifies verified open-license audio files exist in public directory", () => {
+    const publicDir = path.resolve(__dirname, "../../public");
+    const audioDir = path.resolve(publicDir, "audio");
     expect(fs.existsSync(audioDir)).toBe(true);
 
-    // Verify all available tracks have actual files on disk
+    // Verify all available tracks have actual files on disk (including uploaded /assets/aistudio/*.mp3)
     const availableTracks = APP_CONFIG.backgroundAudio.playlist.filter((t) => t.isAvailable);
-    expect(availableTracks.length).toBeGreaterThanOrEqual(3);
+    expect(availableTracks.length).toBeGreaterThanOrEqual(8);
 
     for (const track of availableTracks) {
       expect(track.src).toBeTruthy();
-      const filePath = path.resolve(audioDir, path.basename(track.src));
+      const filePath = path.resolve(publicDir, track.src.replace(/^\/+/, ""));
       expect(fs.existsSync(filePath), `File for ${track.title} should exist`).toBe(true);
       const stats = fs.statSync(filePath);
       expect(stats.size).toBeGreaterThan(1024 * 1024); // > 1MB valid audio file
@@ -67,12 +68,12 @@ describe("TamGiangPhysics Design System & Audio System", () => {
 
   it("verifies transparent copyright and license compliance for all tracks", () => {
     const playlist = APP_CONFIG.backgroundAudio.playlist;
-    expect(playlist.length).toBeGreaterThanOrEqual(7);
+    expect(playlist.length).toBeGreaterThanOrEqual(12);
 
     // Available tracks MUST have valid open licenses and attribution
     const availableTracks = playlist.filter((t) => t.isAvailable);
     for (const track of availableTracks) {
-      expect(["cc-by-3.0", "public-domain"]).toContain(track.licenseType);
+      expect(["cc-by-4.0", "cc-by-3.0", "public-domain"]).toContain(track.licenseType);
       expect(track.license).toBeTruthy();
       expect(track.licenseUrl).toBeTruthy();
       expect(track.sourceName).toBeTruthy();
@@ -182,9 +183,14 @@ describe("TamGiangPhysics Design System & Audio System", () => {
     });
 
     it("filters tracks accurately by license type and license helper methods", () => {
+      const ccBy4Tracks = manager.getTracksByLicense("cc-by-4.0");
       const ccByTracks = manager.getTracksByLicense("cc-by-3.0");
       const pdTracks = manager.getTracksByLicense("public-domain");
       const unverifiedTracks = manager.getTracksByLicense("unverified");
+
+      expect(ccBy4Tracks.length).toBe(5);
+      expect(ccBy4Tracks.map((t) => t.title)).toContain("Relaxing Lofi - Dyo");
+      expect(ccBy4Tracks.map((t) => t.title)).toContain("Relaxing Lofi - Triskaideca");
 
       expect(ccByTracks.length).toBe(2);
       expect(ccByTracks.map((t) => t.title)).toContain("Gymnopédie No. 1");
@@ -255,5 +261,54 @@ describe("TamGiangPhysics Design System & Audio System", () => {
       manager.pause();
       expect(localStorage.getItem(APP_CONFIG.backgroundAudio.storageKeyEnabled)).toBe("false");
     });
+
+    it("returns deterministic SSR-safe defaults from getDefaultAudioState regardless of localStorage", () => {
+      localStorage.setItem(APP_CONFIG.backgroundAudio.storageKeyTrack, "track-chill-moment");
+      localStorage.setItem(APP_CONFIG.backgroundAudio.storageKeyVolume, "0");
+      localStorage.setItem(APP_CONFIG.backgroundAudio.storageKeyEnabled, "false");
+
+      const ssrDefault = getDefaultAudioState();
+      const hydratedManager = new BackgroundAudioManager();
+
+      expect(ssrDefault.currentTrack.id).toBe(APP_CONFIG.backgroundAudio.playlist[0].id);
+      expect(ssrDefault.volume).toBe(APP_CONFIG.backgroundAudio.defaultVolume);
+      expect(ssrDefault.isEnabled).toBe(true);
+      expect(ssrDefault.isMuted).toBe(false);
+      expect(ssrDefault.isPlaying).toBe(false);
+
+      // Manager hydrates from localStorage while getDefaultAudioState stays pure for initial hydration
+      expect(hydratedManager.getState().currentTrack.id).toBe("track-chill-moment");
+      expect(hydratedManager.getState().volume).toBe(0);
+      expect(hydratedManager.getState().isEnabled).toBe(false);
+    });
+
+    it("adds and removes custom uploaded audio tracks cleanly", async () => {
+      const fakeFile = new File(["mock-mp3-data"], "Nhac_Nen_Tam_Giang.mp3", {
+        type: "audio/mpeg",
+      });
+      const added = await manager.addCustomTrack(fakeFile);
+      expect(added).not.toBeNull();
+      expect(added?.title).toBe("Nhac Nen Tam Giang");
+      expect(added?.isCustom).toBe(true);
+      expect(added?.isAvailable).toBe(true);
+      expect(manager.getState().currentTrack.id).toBe(added?.id);
+
+      await manager.removeCustomTrack(added!.id);
+      expect(manager.getState().playlist.some((t) => t.id === added?.id)).toBe(false);
+      expect(manager.getState().currentTrack.id).not.toBe(added?.id);
+    });
+  });
+
+  it("synchronizes color tokens in mo-phong.css with styles.css", () => {
+    const moPhongCssPath = path.resolve(__dirname, "../styles/pages/mo-phong.css");
+    const moPhongCss = fs.readFileSync(moPhongCssPath, "utf-8").toLowerCase();
+
+    expect(moPhongCss).toContain("--lab-paper: #f7f8f2");
+    expect(moPhongCss).toContain("--lab-green: #16845a");
+    expect(moPhongCss).toContain("--lab-lime: #c8ed78");
+    expect(moPhongCss).toContain("--lab-paper: #0b1511");
+    expect(moPhongCss).toContain("--lab-green: #38a875");
+    expect(moPhongCss).toContain("--sidebar: #eef3ec");
+    expect(moPhongCss).toContain("--sidebar: #101f18");
   });
 });

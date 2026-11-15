@@ -16,7 +16,7 @@ import {
 export const Route = createFileRoute("/cong-thuc")({
   head: () => ({
     meta: [
-      { title: "Kho công thức Vật lý THPT | TamGiangPhysics" },
+      { title: "Kho công thức Vật lý THPT | Trường THPT Tam Giang" },
       {
         name: "description",
         content:

@@ -241,7 +241,7 @@ export function ShowcaseTopics() {
           {simulationOpen ? (
             <div className="relative size-full">
               <iframe
-                src={current.simulationUrl}
+                src={`/api/mo-phong/${current.sampleLessonPath}`}
                 title={`${current.title} — ${current.sampleLessonName}`}
                 className="absolute inset-0 size-full border-0 bg-background"
                 sandbox="allow-scripts allow-popups allow-forms allow-pointer-lock allow-same-origin"
@@ -258,7 +258,7 @@ export function ShowcaseTopics() {
                   <Maximize2 className="size-3.5" />
                 </Link>
                 <a
-                  href={current.simulationUrl}
+                  href={`/api/mo-phong/${current.sampleLessonPath}`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex size-7 items-center justify-center rounded-md text-lab-subtle hover:bg-lab-line/40 hover:text-lab-ink"

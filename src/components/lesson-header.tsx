@@ -30,11 +30,11 @@ export function LessonHeader({ lesson, onToggleSidebar, isSidebarOpen }: LessonH
           <PanelLeft className="size-4" />
         </button>
 
-        {/* Unified TamGiangPhysics Brand Logo */}
+        {/* Unified Trường THPT Tam Giang Brand Logo */}
         <Link
           to="/"
           className="flex shrink-0 items-center gap-2 focus-visible:ring-2 focus-visible:ring-[#38A875] rounded-md"
-          title="TamGiangPhysics — về trang chủ"
+          title="Trường THPT Tam Giang — Về trang chủ"
         >
           <Logo size="sm" />
         </Link>

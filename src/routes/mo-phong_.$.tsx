@@ -10,23 +10,23 @@ export const Route = createFileRoute("/mo-phong_/$")({
   head: ({ params }) => {
     const lesson = getLessonByPath(params._splat || "");
     const title = lesson
-      ? `${lesson.name} — Mô phỏng Vật Lý | TamGiangPhysics`
-      : "Mô phỏng Vật Lý | TamGiangPhysics";
+      ? `${lesson.name} — Mô phỏng Vật Lý | Trường THPT Tam Giang`
+      : "Mô phỏng Vật Lý | Trường THPT Tam Giang";
     return {
       meta: [
         { title },
         {
           name: "description",
           content: lesson
-            ? `${lesson.name} - ${lesson.topic} (${lesson.grade}). Nền tảng học tập & mô phỏng Vật lý tương tác TamGiangPhysics.`
-            : "Nền tảng học tập & mô phỏng Vật lý tương tác TamGiangPhysics",
+            ? `${lesson.name} - ${lesson.topic} (${lesson.grade}). Nền tảng học tập & mô phỏng Vật lý tương tác Trường THPT Tam Giang.`
+            : "Nền tảng học tập & mô phỏng Vật lý tương tác Trường THPT Tam Giang",
         },
         { property: "og:title", content: title },
         {
           property: "og:description",
           content: lesson
-            ? `${lesson.name} - ${lesson.topic} (${lesson.grade}). Nền tảng học tập & mô phỏng Vật lý tương tác TamGiangPhysics.`
-            : "Nền tảng học tập & mô phỏng Vật lý tương tác TamGiangPhysics",
+            ? `${lesson.name} - ${lesson.topic} (${lesson.grade}). Nền tảng học tập & mô phỏng Vật lý tương tác Trường THPT Tam Giang.`
+            : "Nền tảng học tập & mô phỏng Vật lý tương tác Trường THPT Tam Giang",
         },
       ],
     };

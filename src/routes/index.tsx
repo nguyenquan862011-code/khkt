@@ -21,20 +21,20 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TamGiangPhysics — Nền tảng học tập & mô phỏng Vật lý hiện đại" },
+      { title: "Trường THPT Tam Giang — Nền tảng học tập & mô phỏng Vật lý hiện đại" },
       {
         name: "description",
         content:
-          "TamGiangPhysics: Khám phá Vật lý qua quan sát, thực nghiệm và hơn 777+ mô phỏng trực quan. Nhìn thấy để hiểu sâu bản chất thế giới tự nhiên.",
+          "Trường THPT Tam Giang: Khám phá Vật lý qua quan sát, thực nghiệm và hơn 777+ mô phỏng trực quan. Nhìn thấy để hiểu sâu bản chất thế giới tự nhiên.",
       },
       {
         property: "og:title",
-        content: "TamGiangPhysics — Nền tảng học tập & mô phỏng Vật lý hiện đại",
+        content: "Trường THPT Tam Giang — Nền tảng học tập & mô phỏng Vật lý hiện đại",
       },
       {
         property: "og:description",
         content:
-          "TamGiangPhysics: Khám phá Vật lý qua quan sát, thực nghiệm và hơn 777+ mô phỏng trực quan. Nhìn thấy để hiểu sâu bản chất thế giới tự nhiên.",
+          "Trường THPT Tam Giang: Khám phá Vật lý qua quan sát, thực nghiệm và hơn 777+ mô phỏng trực quan. Nhìn thấy để hiểu sâu bản chất thế giới tự nhiên.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -129,7 +129,7 @@ function Index() {
 
                 {/* Description */}
                 <p className="text-sm leading-relaxed text-muted-foreground sm:text-base max-w-xl">
-                  TamGiangPhysics mang đến trải nghiệm tiếp cận Vật lý thông qua quan sát hiện
+                  Trường THPT Tam Giang mang đến trải nghiệm tiếp cận Vật lý thông qua quan sát hiện
                   tượng, tự tay thay đổi thông số thực nghiệm và mô phỏng trực quan. Học sinh chuyển
                   hóa từ học vẹt sang thấu hiểu bản chất định luật.
                 </p>

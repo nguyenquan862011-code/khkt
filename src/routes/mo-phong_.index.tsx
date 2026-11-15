@@ -1,13 +1,19 @@
 import { Logo } from "@/components/logo";
 import { Footer } from "@/components/footer";
-import { createFileRoute } from "@tanstack/react-router";
+import { AudioController } from "@/components/audio-controller";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { PanelLeft, Home, BookOpen } from "lucide-react";
+import { curriculum, searchLessons, type CurriculumNode, type LessonMeta } from "@/data/curriculum";
+import { APP_CONFIG } from "@/lib/config";
 import capturedCSS from "../styles/pages/mo-phong.css?raw";
 
-export const Route = createFileRoute("/mo-phong")({
-  head: () => ({ meta: [{ title: "Mô phỏng Vật Lý | TamGiangPhysics" }] }),
+export const Route = createFileRoute("/mo-phong_/")({
+  head: () => ({ meta: [{ title: "Mô phỏng Vật Lý | Trường THPT Tam Giang" }] }),
   staticData: {
     importedDocument: {
-      html: { lang: "vi-VN", style: { colorScheme: "light" } as import("react").CSSProperties },
+      html: { lang: "vi-VN" },
       body: {
         className:
           "geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable \x66lex \x6din-h-screen \x77-full \x66lex-col \x61ntialiased",
@@ -19,6 +25,62 @@ export const Route = createFileRoute("/mo-phong")({
 });
 
 function Index() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeGradeSlug, setActiveGradeSlug] = useState("lop-10");
+  const [selectedTopicKey, setSelectedTopicKey] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const toggleTheme = () => {
+    const html = document.documentElement;
+    const isDark = html.classList.contains("dark");
+    const nextTheme = isDark ? "light" : "dark";
+    html.classList.toggle("dark", nextTheme === "dark");
+    try {
+      localStorage.setItem(APP_CONFIG.backgroundAudio.storageKeyTheme, nextTheme);
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const handleFocusSearch = () => {
+    setIsSidebarOpen(true);
+    requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+    });
+  };
+
+  const handleOpenTopic = (gradeSlug: string, partSlug: string, topicSlug: string) => {
+    setIsSidebarOpen(true);
+    setActiveGradeSlug(gradeSlug);
+    setSelectedTopicKey(`${partSlug}/${topicSlug}`);
+    setSearchQuery("");
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+      if (e.key === "/") {
+        e.preventDefault();
+        setIsSidebarOpen(true);
+        requestAnimationFrame(() => {
+          searchInputRef.current?.focus();
+        });
+      } else if (e.key === "b" || e.key === "B") {
+        e.preventDefault();
+        setIsSidebarOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   return (
     <>
       <style>{capturedCSS}</style>
@@ -27,20 +89,38 @@ function Index() {
         lang="vi"
       >
         <div>
-          <ImportedHeader />
+          <ImportedHeader
+            isSidebarOpen={isSidebarOpen}
+            onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+            onToggleTheme={toggleTheme}
+          />
         </div>
         <div className="relative flex min-h-0 flex-1">
-          <ImportedAsideGiOTrNh />
+          <ImportedAsideGiOTrNh
+            isOpen={isSidebarOpen}
+            onClose={() => setIsSidebarOpen(false)}
+            activeGradeSlug={activeGradeSlug}
+            onSelectGrade={(slug) => {
+              setActiveGradeSlug(slug);
+              setSelectedTopicKey(null);
+            }}
+            selectedTopicKey={selectedTopicKey}
+            onSelectTopic={setSelectedTopicKey}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchInputRef={searchInputRef}
+            onToggleTheme={toggleTheme}
+          />
           <main className="flex min-h-0 min-w-0 flex-1 flex-col" id="simulation-content">
             <div
               className={"min-h-0 flex-1 overflow-y-auto \x62g-lab-paper text-lab-ink"}
               data-site-import-scroll-root=""
             >
-              <ImportedSectionChNMT />
+              <ImportedSectionChNMT onFocusSearch={handleFocusSearch} />
               <div className={"mx-auto max-w-6xl \x73pace-y-14 px-6 py-12 md:px-10"}>
-                <ImportedSectionLP10 />
-                <ImportedSectionLP11 />
-                <ImportedSectionLP12 />
+                <ImportedSectionLP10 onOpenTopic={handleOpenTopic} />
+                <ImportedSectionLP11 onOpenTopic={handleOpenTopic} />
+                <ImportedSectionLP12 onOpenTopic={handleOpenTopic} />
                 <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
                   <ImportedSectionLTrNh4 />
                   <section
@@ -148,287 +228,650 @@ function Index() {
   );
 }
 
-function ImportedHeader() {
+function ImportedHeader({
+  isSidebarOpen,
+  onToggleSidebar,
+}: {
+  isSidebarOpen: boolean;
+  onToggleSidebar: () => void;
+  onToggleTheme?: () => void;
+}) {
   return (
-    <header
-      className={
-        "flex min-h-16 shrink-0 flex-wrap items-center gap-1 \x62order-b \x62g-background px-2 pt-1 md:gap-3 md:px-4 \x6cg:\x66lex-nowrap lg:pt-0"
-      }
-    >
-      <span className="inline-flex" data-state="closed">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#153325] dark:border-[#12261C] bg-[#091A13] dark:bg-[#06120D] px-3 md:px-4 text-[#EDF5ED]">
+      <div className="flex min-w-0 items-center gap-2 md:gap-3">
         <button
-          className={
-            "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-9"
-          }
+          type="button"
+          onClick={onToggleSidebar}
+          aria-expanded={isSidebarOpen}
+          className={`flex size-8.5 items-center justify-center rounded-md border border-white/10 transition-colors ${
+            isSidebarOpen
+              ? "bg-white/10 text-[#C8ED78] border-[#38A875]/40"
+              : "text-[#EDF5ED]/70 hover:bg-white/5 hover:text-white"
+          }`}
+          title="Ẩn / hiện giáo trình (Phím B)"
           aria-label="Ẩn / hiện giáo trình"
         >
-          <svg
-            className="size-5"
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <rect width="18" height="18" x="3" y="3" rx="2" />
-            <path d="M9 3v18" />
-          </svg>
+          <PanelLeft className="size-4" />
         </button>
-      </span>
-      <a
-        className="group mr-2 flex shrink-0 items-center gap-2 rounded-md focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="TamGiangPhysics — về trang chủ"
-        href="/"
-      >
-        <Logo size="sm" />
-      </a>
-      <nav className="min-w-0 flex-1" aria-label="Vị trí bài học">
-        <ol className="flex min-w-0 items-center gap-1 text-xs">
-          <li className="text-muted-foreground">Thư viện mô phỏng</li>
-        </ol>
-      </nav>
-      <div
-        className={
-          "flex w-full shrink-0 items-center justify-end gap-0.5 \x62order-t py-1 lg:w-auto \x6cg:\x62order-0 lg:py-0"
-        }
-      >
-        <button
-          className={
-            "inline-flex items-center justify-center font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x62order \x62g-background \x73hadow-xs \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x62order-input \x64ark:\x62g-input/\x330 \x64ark:\x68over:\x62g-input/\x350 h-8 gap-1.5 \x68as-[>\x73vg]:\x70x-2.\x35 mr-auto shrink-0 rounded-full px-3 text-xs lg:mr-2"
-          }
-          aria-label="Còn 5/5 bài miễn phí · Đăng nhập"
+
+        <Link
+          to="/"
+          className="flex shrink-0 items-center gap-2 focus-visible:ring-2 focus-visible:ring-[#38A875] rounded-md"
+          aria-label="Trường THPT Tam Giang — về trang chủ"
+          title="Trường THPT Tam Giang — Về trang chủ"
         >
-          <span className={"hidden \x78l:\x69nline"}>Còn 5/5 bài miễn phí · Đăng nhập</span>
-          <span className={"\x78l:\x68idden"} aria-hidden="true">
-            Còn 5/5 · Đăng nhập
-          </span>
-        </button>
-        <span className={"hidden \x73m:\x69nline-flex"}>
-          <div className="flex items-center" aria-label="Điều hướng bài học">
-            <span className="inline-flex" data-state="closed">
-              <button
-                className={
-                  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-9"
-                }
-                aria-label="Bài trước"
-                disabled
-              >
-                <svg
-                  className="size-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-              </button>
-            </span>
-            <span className="inline-flex" data-state="closed">
-              <button
-                className={
-                  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-9"
-                }
-                aria-label="Bài sau"
-                disabled
-              >
-                <svg
-                  className="size-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-            </span>
-          </div>
-        </span>
-        <span className={"mx-1 hidden h-5 w-px \x62g-border \x73m:\x62lock"} aria-hidden="true" />
-        <span className="inline-flex" data-state="closed">
-          <button
-            className={
-              "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-9"
-            }
-            aria-label="Tải lại mô phỏng"
-            disabled
-          >
-            <svg
-              className="size-4"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-            </svg>
-          </button>
-        </span>
-        <span className="inline-flex" data-state="closed">
-          <button
-            className={
-              "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-9"
-            }
-            aria-label="Toàn màn hình"
-            disabled
-          >
-            <svg
-              className="size-4"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M15 3h6v6" />
-              <path d="m21 3-7 7" />
-              <path d="m3 21 7-7" />
-              <path d="M9 21H3v-6" />
-            </svg>
-          </button>
-        </span>
-        <span className={"ml-1 hidden \x6dd:\x62lock"}>
-          <div className={"flex flex-wrap items-center justify-center gap-2 \x6dd:\x66lex-row"}>
-            <button
-              className={
-                "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x62order \x62g-background \x73hadow-xs \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x62order-input \x64ark:\x62g-input/\x330 \x64ark:\x68over:\x62g-input/\x350 size-9"
-              }
-            >
-              <svg
-                className={"hidden [\x68tml.\x64ark_&]:\x62lock"}
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2" />
-                <path d="M12 20v2" />
-                <path d="m4.93 4.93 1.41 1.41" />
-                <path d="m17.66 17.66 1.41 1.41" />
-                <path d="M2 12h2" />
-                <path d="M20 12h2" />
-                <path d="m6.34 17.66-1.41 1.41" />
-                <path d="m19.07 4.93-1.41 1.41" />
-              </svg>
-              <svg
-                className={"hidden [\x68tml.\x6cight_&]:\x62lock"}
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
-              </svg>
-              <span className={"\x73r-only"}>Toggle theme</span>
-            </button>
-          </div>
-        </span>
-        <span className="ml-1 inline-flex shrink-0">
-          <button
-            className={
-              "inline-flex shrink-0 items-center justify-center gap-2 text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x62order \x62g-background \x73hadow-xs \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x62order-input \x64ark:\x62g-input/\x330 \x64ark:\x68over:\x62g-input/\x350 size-11 rounded-full"
-            }
-            aria-label="Mở menu tài khoản"
-            type="button"
-            id="radix-_r_8_"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            data-state="closed"
-          >
-            <svg
-              className="size-5 text-muted-foreground"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M18 20a6 6 0 0 0-12 0" />
-              <circle cx="12" cy="10" r="4" />
-              <circle cx="12" cy="12" r="10" />
-            </svg>
-          </button>
-        </span>
+          <Logo size="sm" />
+        </Link>
+
+        <span className="hidden h-4 w-px bg-white/10 md:block" aria-hidden="true" />
+
+        <nav className="min-w-0 flex-1" aria-label="Vị trí bài học">
+          <ol className="flex min-w-0 items-center gap-1 text-xs">
+            <li className="truncate font-medium text-[#72CF91]">Thư viện mô phỏng 777+</li>
+          </ol>
+        </nav>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        <AudioController />
+        <ThemeToggle />
+        <Link
+          to="/tai-lieu"
+          className="hidden sm:flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium text-[#EDF5ED]/75 hover:bg-white/5 hover:text-[#C8ED78] transition-colors"
+          title="Kho tài liệu Vật lý"
+        >
+          <BookOpen className="size-3.5" />
+          <span>Tài liệu</span>
+        </Link>
+        <Link
+          to="/"
+          className="flex size-8 items-center justify-center rounded-md text-[#EDF5ED]/75 hover:bg-white/5 hover:text-white transition-colors"
+          title="Về trang chủ"
+          aria-label="Về trang chủ"
+        >
+          <Home className="size-4" />
+        </Link>
       </div>
     </header>
   );
 }
 
-function ImportedAsideGiOTrNh() {
-  return (
-    <aside
-      className={
-        "fixed \x69nset-y-0 left-0 z-50 w-[21rem] max-w-[88vw] shrink-0 overflow-hidden \x62order-r \x62order-sidebar-border \x73hadow-2xl transition-[width,transform] duration-300 ease-out \x6dotion-reduce:\x74ransition-none \x6dd:\x73tatic md:z-auto \x6dd:\x73hadow-none invisible \x2dtranslate-x-full \x6dd:\x76isible \x6dd:\x74ranslate-x-0 md:w-[21rem]"
+function countTopicLessons(gradeSlug: string, partSlug: string, topic: CurriculumNode) {
+  const counts = { theory: 0, example: 0, exercise: 0, practice: 0, total: 0 };
+  for (const bai of topic.children || []) {
+    for (const item of bai.children || []) {
+      const slugPath = item.slugPath || [gradeSlug, partSlug, topic.slug, bai.slug, item.slug];
+      const meta = curriculum.lessons[slugPath.join("/")];
+      counts.total += 1;
+      if (meta?.kind === "theory") counts.theory += 1;
+      else if (meta?.kind === "example") counts.example += 1;
+      else if (meta?.kind === "exercise") counts.exercise += 1;
+      else if (meta?.kind === "practice") counts.practice += 1;
+    }
+  }
+  return counts;
+}
+
+function getKindDotClass(kind: LessonMeta["kind"] | undefined) {
+  switch (kind) {
+    case "theory":
+      return "\x62g-kind-theory";
+    case "example":
+      return "\x62g-kind-example";
+    case "exercise":
+      return "\x62g-kind-exercise";
+    case "practice":
+      return "\x62g-kind-practice";
+    default:
+      return "bg-muted-foreground";
+  }
+}
+
+function getKindLabel(kind: LessonMeta["kind"] | undefined) {
+  switch (kind) {
+    case "theory":
+      return "Lý thuyết";
+    case "example":
+      return "Ví dụ";
+    case "exercise":
+      return "Bài tập";
+    case "practice":
+      return "Luyện tập";
+    default:
+      return "Bài học";
+  }
+}
+
+function ImportedAsideGiOTrNh({
+  isOpen,
+  onClose,
+  activeGradeSlug,
+  onSelectGrade,
+  selectedTopicKey,
+  onSelectTopic,
+  searchQuery,
+  onSearchChange,
+  searchInputRef,
+  onToggleTheme,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  activeGradeSlug: string;
+  onSelectGrade: (slug: string) => void;
+  selectedTopicKey: string | null;
+  onSelectTopic: (key: string | null) => void;
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  searchInputRef: RefObject<HTMLInputElement | null>;
+  onToggleTheme: () => void;
+}) {
+  const gradeIndex = activeGradeSlug === "lop-11" ? 1 : activeGradeSlug === "lop-12" ? 2 : 0;
+  const activeGradeNode = useMemo(
+    () => curriculum.tree.find((g) => g.slug === activeGradeSlug) || curriculum.tree[0],
+    [activeGradeSlug],
+  );
+
+  const gradeStats = useMemo(() => {
+    const parts = activeGradeNode?.children || [];
+    let topicCount = 0;
+    let simCount = 0;
+    for (const part of parts) {
+      for (const topic of part.children || []) {
+        topicCount += 1;
+        simCount += countTopicLessons(activeGradeNode.slug, part.slug, topic).total;
       }
-      aria-labelledby="curriculum-title"
-    >
-      <div
-        className={
-          "flex h-full w-[21rem] max-w-[88vw] flex-col \x62g-sidebar text-sidebar-foreground"
+    }
+    return {
+      partTitle: parts.map((p) => p.name).join(" · "),
+      topicCount,
+      simCount,
+    };
+  }, [activeGradeNode]);
+
+  const selectedTopicEntry = useMemo(() => {
+    if (!selectedTopicKey || !activeGradeNode) return null;
+    for (const part of activeGradeNode.children || []) {
+      for (const topic of part.children || []) {
+        if (`${part.slug}/${topic.slug}` === selectedTopicKey || topic.slug === selectedTopicKey) {
+          return { part, topic };
         }
+      }
+    }
+    return null;
+  }, [selectedTopicKey, activeGradeNode]);
+
+  const searchResults = useMemo(() => searchLessons(searchQuery), [searchQuery]);
+
+  const indicatorTranslateClass =
+    gradeIndex === 1
+      ? "translate-x-full"
+      : gradeIndex === 2
+        ? "translate-x-[200%]"
+        : "\x74ranslate-x-0";
+
+  return (
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-xs md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`fixed \x69nset-y-0 left-0 z-50 w-[21rem] max-w-[88vw] shrink-0 overflow-hidden \x62order-r \x62order-sidebar-border \x73hadow-2xl transition-[width,transform] duration-300 ease-out \x6dotion-reduce:\x74ransition-none \x6dd:\x73tatic md:z-auto \x6dd:\x73hadow-none ${
+          isOpen
+            ? "visible translate-x-0 md:w-[21rem]"
+            : "invisible -translate-x-full md:w-0 md:border-r-0"
+        }`}
+        aria-labelledby="curriculum-title"
       >
-        <div className={"\x73pace-y-3 px-4 pt-4 pb-3"}>
-          <div className="flex items-center gap-1">
-            <h2
-              className="flex-1 text-[11px] font-semibold tracking-[0.18em] text-muted-foreground uppercase"
-              id="curriculum-title"
-            >
-              Giáo trình
-            </h2>
-            <span className="inline-flex" data-state="closed">
+        <div
+          className={
+            "flex h-full w-[21rem] max-w-[88vw] flex-col \x62g-sidebar text-sidebar-foreground"
+          }
+        >
+          <div className={"\x73pace-y-3 px-4 pt-4 pb-3"}>
+            <div className="flex items-center gap-1">
+              <h2
+                className="flex-1 text-[11px] font-semibold tracking-[0.18em] text-muted-foreground uppercase"
+                id="curriculum-title"
+              >
+                Giáo trình
+              </h2>
+              <span className="inline-flex" data-state="closed">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSearchChange("");
+                    onSelectTopic(null);
+                  }}
+                  className={
+                    "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-9"
+                  }
+                  aria-label="Làm mới danh sách giáo trình"
+                >
+                  <svg
+                    className="size-3.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                    <path d="M21 3v5h-5" />
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                    <path d="M8 16H3v5" />
+                  </svg>
+                </button>
+              </span>
               <button
+                type="button"
+                onClick={onClose}
                 className={
-                  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-9"
+                  "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-8 \x6dd:\x68idden"
                 }
-                aria-label="Làm mới danh sách giáo trình"
+                aria-label="Đóng giáo trình"
+              >
+                <svg
+                  className="size-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="group/search relative">
+              <label className={"\x73r-only"} htmlFor="simulation-search">
+                Tìm bài trong giáo trình
+              </label>
+              <svg
+                className={
+                  "pointer-events-none absolute top-1/2 left-3 size-4 \x2dtranslate-y-1/\x32 text-muted-foreground transition-colors \x67roup-focus-within/\x73earch:\x74ext-sidebar-primary"
+                }
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="m21 21-4.34-4.34" />
+                <circle cx="11" cy="11" r="8" />
+              </svg>
+              <input
+                ref={searchInputRef}
+                className={
+                  "w-full min-w-0 \x62order px-3 py-1 \x73hadow-xs \x6futline-none \x73election:\x62g-primary \x73election:\x74ext-primary-foreground \x66ile:\x69nline-flex \x66ile:\x68-7 \x66ile:\x62order-0 \x66ile:\x62g-transparent \x66ile:\x74ext-sm \x66ile:\x66ont-medium \x66ile:\x74ext-foreground \x70laceholder:\x74ext-muted-foreground \x64isabled:\x70ointer-events-none \x64isabled:\x63ursor-not-allowed disabled:opacity-50 md:text-sm \x64ark:\x62g-input/\x330 \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 h-10 rounded-xl \x62order-sidebar-border \x62g-sidebar-accent/\x340 pr-9 pl-9 text-sm transition-colors \x66ocus-visible:\x62g-sidebar"
+                }
+                id="simulation-search"
+                autoComplete="off"
+                placeholder="Tìm bài, dạng, “VD3”…"
+                aria-controls="curriculum-list"
+                type="search"
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+              />
+              {!searchQuery && (
+                <kbd
+                  className={
+                    "pointer-events-none absolute top-1/2 right-3 \x2dtranslate-y-1/\x32 rounded-md \x62order \x62order-sidebar-border \x62g-sidebar px-1.5 \x66ont-mono text-[11px] text-muted-foreground"
+                  }
+                >
+                  /
+                </kbd>
+              )}
+            </div>
+            <div
+              className={"relative grid rounded-xl \x62g-sidebar-accent/\x370 p-1 grid-cols-3"}
+              role="group"
+              aria-label="Chọn lớp"
+            >
+              <span
+                className={`absolute \x69nset-y-1 left-1 rounded-lg \x62g-sidebar \x73hadow-sm \x72ing-1 \x72ing-sidebar-border transition-transform duration-300 ease-out \x6dotion-reduce:\x74ransition-none w-[calc((100%-0.5rem)/3)] ${indicatorTranslateClass}`}
+                aria-hidden="true"
+              />
+              {[
+                { slug: "lop-10", label: "Lớp 10", count: 245 },
+                { slug: "lop-11", label: "Lớp 11", count: 162 },
+                { slug: "lop-12", label: "Lớp 12", count: 370 },
+              ].map((gradeTab) => {
+                const active = activeGradeSlug === gradeTab.slug;
+                return (
+                  <button
+                    key={gradeTab.slug}
+                    onClick={() => onSelectGrade(gradeTab.slug)}
+                    className={`relative z-10 flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x66ocus-visible:\x6futline-none ${
+                      active
+                        ? "text-sidebar-foreground"
+                        : "text-muted-foreground hover:text-sidebar-foreground"
+                    }`}
+                    type="button"
+                    aria-pressed={active}
+                  >
+                    <span className="truncate">{gradeTab.label}</span>
+                    <span
+                      className={`\x66ont-mono text-[10px] ${
+                        active ? "text-sidebar-primary" : "\x74ext-muted-foreground/\x380"
+                      }`}
+                    >
+                      {gradeTab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <header className={"\x62order-b \x62order-sidebar-border px-4 pt-1 pb-3"}>
+              <p
+                className={
+                  "\x66ont-mono text-[10px] tracking-[0.16em] text-sidebar-primary uppercase"
+                }
+              >
+                {searchQuery.trim()
+                  ? "Kết quả tìm kiếm"
+                  : selectedTopicEntry
+                    ? selectedTopicEntry.part.name
+                    : "Giáo trình"}
+              </p>
+              <h3 className="mt-0.5 text-base leading-snug font-semibold tracking-tight">
+                {searchQuery.trim()
+                  ? `“${searchQuery.trim()}”`
+                  : selectedTopicEntry
+                    ? selectedTopicEntry.topic.name
+                    : gradeStats.partTitle}
+              </h3>
+              <p className="mt-1 text-[11px] text-muted-foreground" role="status">
+                {searchQuery.trim()
+                  ? `${searchResults.length} mô phỏng phù hợp`
+                  : selectedTopicEntry
+                    ? `${countTopicLessons(activeGradeNode.slug, selectedTopicEntry.part.slug, selectedTopicEntry.topic).total} mô phỏng · ${selectedTopicEntry.topic.children?.length ?? 0} bài học`
+                    : `${gradeStats.simCount} mô phỏng · ${gradeStats.topicCount} chuyên đề`}
+              </p>
+            </header>
+            <div
+              className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-3"
+              id="curriculum-list"
+            >
+              {searchQuery.trim() ? (
+                <div className="space-y-1">
+                  {searchResults.length === 0 ? (
+                    <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+                      Không tìm thấy bài học phù hợp.
+                    </p>
+                  ) : (
+                    searchResults.map((lesson) => (
+                      <Link
+                        key={lesson.fullPath}
+                        to="/mo-phong/$"
+                        params={{ _splat: lesson.fullPath }}
+                        className="flex flex-col gap-0.5 rounded-xl px-3 py-2 text-xs text-sidebar-foreground transition-colors hover:bg-sidebar-accent"
+                      >
+                        <span className="flex items-center justify-between gap-2">
+                          <span className="truncate font-medium">{lesson.name}</span>
+                          <span
+                            className={`size-1.5 shrink-0 rounded-full ${getKindDotClass(lesson.kind)}`}
+                            title={getKindLabel(lesson.kind)}
+                          />
+                        </span>
+                        <span className="truncate text-[10px] text-muted-foreground">
+                          {lesson.grade} • {lesson.topic}
+                        </span>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              ) : selectedTopicEntry ? (
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => onSelectTopic(null)}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-sidebar-primary hover:bg-sidebar-accent"
+                  >
+                    ← Quay lại danh sách chuyên đề
+                  </button>
+                  <div className="space-y-2.5">
+                    {selectedTopicEntry.topic.children?.map((bai) => (
+                      <div
+                        key={bai.slug}
+                        className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/25 p-2"
+                      >
+                        <div className="px-1.5 pb-1.5 text-[11px] font-semibold text-sidebar-foreground">
+                          {bai.name}
+                        </div>
+                        <div className="space-y-0.5">
+                          {bai.children?.map((item) => {
+                            const slugPath = item.slugPath || [
+                              activeGradeNode.slug,
+                              selectedTopicEntry.part.slug,
+                              selectedTopicEntry.topic.slug,
+                              bai.slug,
+                              item.slug,
+                            ];
+                            const fullPath = slugPath.join("/");
+                            const meta = curriculum.lessons[fullPath];
+                            return (
+                              <Link
+                                key={fullPath}
+                                to="/mo-phong/$"
+                                params={{ _splat: fullPath }}
+                                className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs text-sidebar-foreground/90 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                              >
+                                <span className="truncate">{item.name}</span>
+                                <span
+                                  className={`size-1.5 shrink-0 rounded-full ${getKindDotClass(meta?.kind)}`}
+                                  title={getKindLabel(meta?.kind)}
+                                />
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className={"\x73pace-y-4 \x6dotion-safe:\x64uration-300"}>
+                  <ul className={"\x73pace-y-2"} aria-label="Chuyên đề">
+                    {(activeGradeNode?.children || []).flatMap((part) =>
+                      (part.children || []).map((topic) => {
+                        const c = countTopicLessons(activeGradeNode.slug, part.slug, topic);
+                        const total = Math.max(1, c.total);
+                        const gap = 0.6;
+                        const avail = 100 - gap * 3;
+                        const w1 = (c.theory / total) * avail;
+                        const w2 = (c.example / total) * avail;
+                        const w3 = (c.exercise / total) * avail;
+                        const w4 = (c.practice / total) * avail;
+                        return (
+                          <li key={`${part.slug}/${topic.slug}`}>
+                            <button
+                              onClick={() => onSelectTopic(`${part.slug}/${topic.slug}`)}
+                              className={
+                                "group flex w-full items-center gap-3 rounded-2xl \x62order \x62order-transparent \x62g-sidebar-accent/\x345 px-3 py-3 text-left transition-[background-color,border-color,transform] \x6futline-none \x68over:\x62order-sidebar-primary/\x325 \x68over:\x62g-sidebar-accent \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x61ctive:\x73cale-[\x30.\x399] disabled:cursor-default disabled:opacity-55 \x6dotion-reduce:\x74ransform-none"
+                              }
+                              type="button"
+                              aria-label={`${topic.name}, ${c.total} mô phỏng`}
+                            >
+                              <span className="min-w-0 flex-1">
+                                <span
+                                  className={
+                                    "flex items-center gap-2 \x66ont-mono text-[10px] tracking-wider text-muted-foreground uppercase"
+                                  }
+                                >
+                                  {part.name}
+                                </span>
+                                <span className={"mt-0.5 \x6cine-clamp-2 text-sm font-medium"}>
+                                  {topic.name}
+                                </span>
+                                <svg
+                                  className="h-1.5 w-full overflow-hidden rounded-full mt-2.5"
+                                  viewBox="0 0 100 4"
+                                  preserveAspectRatio="none"
+                                  role="img"
+                                  aria-label={`${c.theory} Lý thuyết, ${c.example} Ví dụ, ${c.exercise} Bài tập, ${c.practice} Luyện tập`}
+                                >
+                                  <rect
+                                    className={"\x66ill-kind-theory"}
+                                    x="0"
+                                    y="0"
+                                    width={w1}
+                                    height="4"
+                                    rx="1"
+                                  />
+                                  <rect
+                                    className={"\x66ill-kind-example"}
+                                    x={w1 + gap}
+                                    y="0"
+                                    width={w2}
+                                    height="4"
+                                    rx="1"
+                                  />
+                                  <rect
+                                    className={"\x66ill-kind-exercise"}
+                                    x={w1 + w2 + gap * 2}
+                                    y="0"
+                                    width={w3}
+                                    height="4"
+                                    rx="1"
+                                  />
+                                  <rect
+                                    className={"\x66ill-kind-practice"}
+                                    x={w1 + w2 + w3 + gap * 3}
+                                    y="0"
+                                    width={w4}
+                                    height="4"
+                                    rx="1"
+                                  />
+                                </svg>
+                              </span>
+                              <span className="flex shrink-0 flex-col items-end gap-1">
+                                <span className={"\x66ont-mono text-[11px] text-muted-foreground"}>
+                                  {c.total}
+                                </span>
+                                <svg
+                                  className={
+                                    "size-4 text-muted-foreground transition-transform \x67roup-hover:\x74ranslate-x-0.\x35 \x67roup-hover:\x74ext-sidebar-primary"
+                                  }
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="24"
+                                  height="24"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="m9 18 6-6-6-6" />
+                                </svg>
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      }),
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </div>
+          <footer className={"\x73pace-y-3 \x62order-t \x62order-sidebar-border p-3"}>
+            <a
+              className={
+                "group relative flex items-center gap-3 overflow-hidden rounded-2xl \x62g-lab-deep p-3 text-lab-on-deep transition-transform \x6futline-none \x68over:\x2dtranslate-y-0.\x35 \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-lime \x6dotion-reduce:\x74ransform-none"
+              }
+              href="/tai-lieu"
+            >
+              <span
+                className={
+                  "absolute -top-8 -right-8 size-24 \x61nimate-lab-spin rounded-full \x62order \x62order-dashed \x62order-lab-lime/\x330"
+                }
+                aria-hidden="true"
+              />
+              <span
+                className={
+                  "flex size-9 shrink-0 items-center justify-center rounded-xl \x62g-lab-lime text-lab-deep"
+                }
+              >
+                <svg
+                  className="size-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
+                  <path d="M22 10v6" />
+                  <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
+                </svg>
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[10px] tracking-wider text-lab-lime uppercase">
+                  Phương pháp nghiên cứu
+                </span>
+                <span className="block truncate text-xs font-semibold">
+                  Trường THPT Tam Giang — Khám phá bản chất
+                </span>
+              </span>
+              <svg
+                className={
+                  "size-4 shrink-0 text-lab-lime transition-transform \x67roup-hover:\x74ranslate-x-0.\x35 \x67roup-hover:\x2dtranslate-y-0.\x35"
+                }
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M7 7h10v10" />
+                <path d="M7 17 17 7" />
+              </svg>
+              <span className={"\x73r-only"}>(mở trang trung tâm trong tab mới)</span>
+            </a>
+            <div className="flex items-center justify-between px-1">
+              <button
+                type="button"
+                onClick={() => {
+                  onSearchChange("");
+                  onSelectTopic(null);
+                }}
+                className={
+                  "inline-flex min-h-9 items-center gap-2 rounded-md text-xs text-muted-foreground transition-colors hover:text-sidebar-foreground \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x66ocus-visible:\x6futline-none"
+                }
               >
                 <svg
                   className="size-3.5"
@@ -443,547 +886,81 @@ function ImportedAsideGiOTrNh() {
                   strokeLinejoin="round"
                   aria-hidden="true"
                 >
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                  <path d="M21 3v5h-5" />
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                  <path d="M8 16H3v5" />
+                  <rect width="7" height="7" x="3" y="3" rx="1" />
+                  <rect width="7" height="7" x="14" y="3" rx="1" />
+                  <rect width="7" height="7" x="14" y="14" rx="1" />
+                  <rect width="7" height="7" x="3" y="14" rx="1" />
                 </svg>
+                Tổng quan thư viện
               </button>
-            </span>
-            <button
-              className={
-                "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x68over:\x62g-accent/\x350 size-8 \x6dd:\x68idden"
-              }
-              aria-label="Đóng giáo trình"
-            >
-              <svg
-                className="size-4"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="group/search relative">
-            <label className={"\x73r-only"} htmlFor="simulation-search">
-              Tìm bài trong giáo trình
-            </label>
-            <svg
-              className={
-                "pointer-events-none absolute top-1/2 left-3 size-4 \x2dtranslate-y-1/\x32 text-muted-foreground transition-colors \x67roup-focus-within/\x73earch:\x74ext-sidebar-primary"
-              }
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="m21 21-4.34-4.34" />
-              <circle cx="11" cy="11" r="8" />
-            </svg>
-            <input
-              className={
-                "w-full min-w-0 \x62order px-3 py-1 \x73hadow-xs \x6futline-none \x73election:\x62g-primary \x73election:\x74ext-primary-foreground \x66ile:\x69nline-flex \x66ile:\x68-7 \x66ile:\x62order-0 \x66ile:\x62g-transparent \x66ile:\x74ext-sm \x66ile:\x66ont-medium \x66ile:\x74ext-foreground \x70laceholder:\x74ext-muted-foreground \x64isabled:\x70ointer-events-none \x64isabled:\x63ursor-not-allowed disabled:opacity-50 md:text-sm \x64ark:\x62g-input/\x330 \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 h-10 rounded-xl \x62order-sidebar-border \x62g-sidebar-accent/\x340 pr-9 pl-9 text-sm transition-colors \x66ocus-visible:\x62g-sidebar"
-              }
-              id="simulation-search"
-              autoComplete="off"
-              placeholder="Tìm bài, dạng, “VD3”…"
-              aria-controls="curriculum-list"
-              type="search"
-              defaultValue=""
-            />
-            <kbd
-              className={
-                "pointer-events-none absolute top-1/2 right-3 \x2dtranslate-y-1/\x32 rounded-md \x62order \x62order-sidebar-border \x62g-sidebar px-1.5 \x66ont-mono text-[11px] text-muted-foreground"
-              }
-            >
-              /
-            </kbd>
-          </div>
-          <div
-            className={"relative grid rounded-xl \x62g-sidebar-accent/\x370 p-1 grid-cols-3"}
-            role="group"
-            aria-label="Chọn lớp"
-          >
-            <span
-              className={
-                "absolute \x69nset-y-1 left-1 rounded-lg \x62g-sidebar \x73hadow-sm \x72ing-1 \x72ing-sidebar-border transition-transform duration-300 ease-out \x6dotion-reduce:\x74ransition-none w-[calc((100%-0.5rem)/3)] \x74ranslate-x-0"
-              }
-              aria-hidden="true"
-            />
-            <button
-              className={
-                "relative z-10 flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x66ocus-visible:\x6futline-none text-sidebar-foreground"
-              }
-              type="button"
-              aria-pressed="true"
-            >
-              <span className="truncate">Lớp 10</span>
-              <span className={"\x66ont-mono text-[10px] text-sidebar-primary"}>245</span>
-            </button>
-            <button
-              className={
-                "relative z-10 flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x66ocus-visible:\x6futline-none text-muted-foreground hover:text-sidebar-foreground"
-              }
-              type="button"
-              aria-pressed="false"
-            >
-              <span className="truncate">Lớp 11</span>
-              <span className={"\x66ont-mono text-[10px] \x74ext-muted-foreground/\x380"}>162</span>
-            </button>
-            <button
-              className={
-                "relative z-10 flex min-h-9 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x66ocus-visible:\x6futline-none text-muted-foreground hover:text-sidebar-foreground"
-              }
-              type="button"
-              aria-pressed="false"
-            >
-              <span className="truncate">Lớp 12</span>
-              <span className={"\x66ont-mono text-[10px] \x74ext-muted-foreground/\x380"}>370</span>
-            </button>
-          </div>
-        </div>
-        <div className="flex min-h-0 flex-1 flex-col">
-          <header className={"\x62order-b \x62order-sidebar-border px-4 pt-1 pb-3"}>
-            <p
-              className={
-                "\x66ont-mono text-[10px] tracking-[0.16em] text-sidebar-primary uppercase"
-              }
-            >
-              Giáo trình
-            </p>
-            <h3 className="mt-0.5 text-base leading-snug font-semibold tracking-tight">
-              CƠ HỌC – PHẦN 1
-            </h3>
-            <p className="mt-1 text-[11px] text-muted-foreground" role="status">
-              245 mô phỏng · 3 chuyên đề
-            </p>
-          </header>
-          <div
-            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 py-3"
-            id="curriculum-list"
-          >
-            <div className={"\x73pace-y-4 \x6dotion-safe:\x64uration-300"}>
-              <ul className={"\x73pace-y-2"} aria-label="Chuyên đề">
-                <li>
-                  <button
-                    className={
-                      "group flex w-full items-center gap-3 rounded-2xl \x62order \x62order-transparent \x62g-sidebar-accent/\x345 px-3 py-3 text-left transition-[background-color,border-color,transform] \x6futline-none \x68over:\x62order-sidebar-primary/\x325 \x68over:\x62g-sidebar-accent \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x61ctive:\x73cale-[\x30.\x399] disabled:cursor-default disabled:opacity-55 \x6dotion-reduce:\x74ransform-none"
-                    }
-                    type="button"
-                    aria-label="Chủ đề 1 - GIỚI THIỆU MỤC ĐÍCH HỌC TẬP MÔN VẬT LÝ, 19 mô phỏng"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span
-                        className={
-                          "flex items-center gap-2 \x66ont-mono text-[10px] tracking-wider text-muted-foreground uppercase"
-                        }
-                      >
-                        Chủ đề 1
-                      </span>
-                      <span className={"mt-0.5 \x6cine-clamp-2 text-sm font-medium"}>
-                        GIỚI THIỆU MỤC ĐÍCH HỌC TẬP MÔN VẬT LÝ
-                      </span>
-                      <svg
-                        className="h-1.5 w-full overflow-hidden rounded-full mt-2.5"
-                        viewBox="0 0 100 4"
-                        preserveAspectRatio="none"
-                        role="img"
-                        aria-label="3 Lý thuyết, 10 Ví dụ, 3 Bài tập, 3 Luyện tập"
-                      >
-                        <rect
-                          className={"\x66ill-kind-theory"}
-                          x="0"
-                          y="0"
-                          width="15.505263157894737"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-example"}
-                          x="16.105263157894736"
-                          y="0"
-                          width="51.68421052631579"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-exercise"}
-                          x="68.38947368421051"
-                          y="0"
-                          width="15.505263157894737"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-practice"}
-                          x="84.49473684210524"
-                          y="0"
-                          width="15.505263157894737"
-                          height="4"
-                          rx="1"
-                        />
-                      </svg>
-                    </span>
-                    <span className="flex shrink-0 flex-col items-end gap-1">
-                      <span className={"\x66ont-mono text-[11px] text-muted-foreground"}>19</span>
-                      <svg
-                        className={
-                          "size-4 text-muted-foreground transition-transform \x67roup-hover:\x74ranslate-x-0.\x35 \x67roup-hover:\x74ext-sidebar-primary"
-                        }
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                    </span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={
-                      "group flex w-full items-center gap-3 rounded-2xl \x62order \x62order-transparent \x62g-sidebar-accent/\x345 px-3 py-3 text-left transition-[background-color,border-color,transform] \x6futline-none \x68over:\x62order-sidebar-primary/\x325 \x68over:\x62g-sidebar-accent \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x61ctive:\x73cale-[\x30.\x399] disabled:cursor-default disabled:opacity-55 \x6dotion-reduce:\x74ransform-none"
-                    }
-                    type="button"
-                    aria-label="Chủ đề 2 - MÔ TẢ CHUYỂN ĐỘNG, 137 mô phỏng"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span
-                        className={
-                          "flex items-center gap-2 \x66ont-mono text-[10px] tracking-wider text-muted-foreground uppercase"
-                        }
-                      >
-                        Chủ đề 2
-                      </span>
-                      <span className={"mt-0.5 \x6cine-clamp-2 text-sm font-medium"}>
-                        MÔ TẢ CHUYỂN ĐỘNG
-                      </span>
-                      <svg
-                        className="h-1.5 w-full overflow-hidden rounded-full mt-2.5"
-                        viewBox="0 0 100 4"
-                        preserveAspectRatio="none"
-                        role="img"
-                        aria-label="6 Lý thuyết, 40 Ví dụ, 9 Bài tập, 82 Luyện tập"
-                      >
-                        <rect
-                          className={"\x66ill-kind-theory"}
-                          x="0"
-                          y="0"
-                          width="4.3007299270073"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-example"}
-                          x="4.9007299270072995"
-                          y="0"
-                          width="28.671532846715326"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-exercise"}
-                          x="34.17226277372263"
-                          y="0"
-                          width="6.45109489051095"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-practice"}
-                          x="41.22335766423358"
-                          y="0"
-                          width="58.77664233576643"
-                          height="4"
-                          rx="1"
-                        />
-                      </svg>
-                    </span>
-                    <span className="flex shrink-0 flex-col items-end gap-1">
-                      <span className={"\x66ont-mono text-[11px] text-muted-foreground"}>137</span>
-                      <svg
-                        className={
-                          "size-4 text-muted-foreground transition-transform \x67roup-hover:\x74ranslate-x-0.\x35 \x67roup-hover:\x74ext-sidebar-primary"
-                        }
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                    </span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={
-                      "group flex w-full items-center gap-3 rounded-2xl \x62order \x62order-transparent \x62g-sidebar-accent/\x345 px-3 py-3 text-left transition-[background-color,border-color,transform] \x6futline-none \x68over:\x62order-sidebar-primary/\x325 \x68over:\x62g-sidebar-accent \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x61ctive:\x73cale-[\x30.\x399] disabled:cursor-default disabled:opacity-55 \x6dotion-reduce:\x74ransform-none"
-                    }
-                    type="button"
-                    aria-label="Chủ đề 3 - LỰC VÀ CHUYỂN ĐỘNG, 89 mô phỏng"
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span
-                        className={
-                          "flex items-center gap-2 \x66ont-mono text-[10px] tracking-wider text-muted-foreground uppercase"
-                        }
-                      >
-                        Chủ đề 3
-                      </span>
-                      <span className={"mt-0.5 \x6cine-clamp-2 text-sm font-medium"}>
-                        LỰC VÀ CHUYỂN ĐỘNG
-                      </span>
-                      <svg
-                        className="h-1.5 w-full overflow-hidden rounded-full mt-2.5"
-                        viewBox="0 0 100 4"
-                        preserveAspectRatio="none"
-                        role="img"
-                        aria-label="4 Lý thuyết, 52 Ví dụ, 6 Bài tập, 27 Luyện tập"
-                      >
-                        <rect
-                          className={"\x66ill-kind-theory"}
-                          x="0"
-                          y="0"
-                          width="4.413483146067415"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-example"}
-                          x="5.013483146067415"
-                          y="0"
-                          width="57.375280898876404"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-exercise"}
-                          x="62.98876404494382"
-                          y="0"
-                          width="6.620224719101124"
-                          height="4"
-                          rx="1"
-                        />
-                        <rect
-                          className={"\x66ill-kind-practice"}
-                          x="70.20898876404493"
-                          y="0"
-                          width="29.791011235955057"
-                          height="4"
-                          rx="1"
-                        />
-                      </svg>
-                    </span>
-                    <span className="flex shrink-0 flex-col items-end gap-1">
-                      <span className={"\x66ont-mono text-[11px] text-muted-foreground"}>89</span>
-                      <svg
-                        className={
-                          "size-4 text-muted-foreground transition-transform \x67roup-hover:\x74ranslate-x-0.\x35 \x67roup-hover:\x74ext-sidebar-primary"
-                        }
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="m9 18 6-6-6-6" />
-                      </svg>
-                    </span>
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <footer className={"\x73pace-y-3 \x62order-t \x62order-sidebar-border p-3"}>
-          <a
-            className={
-              "group relative flex items-center gap-3 overflow-hidden rounded-2xl \x62g-lab-deep p-3 text-lab-on-deep transition-transform \x6futline-none \x68over:\x2dtranslate-y-0.\x35 \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-lime \x6dotion-reduce:\x74ransform-none"
-            }
-            href="/tai-lieu"
-          >
-            <span
-              className={
-                "absolute -top-8 -right-8 size-24 \x61nimate-lab-spin rounded-full \x62order \x62order-dashed \x62order-lab-lime/\x330"
-              }
-              aria-hidden="true"
-            />
-            <span
-              className={
-                "flex size-9 shrink-0 items-center justify-center rounded-xl \x62g-lab-lime text-lab-deep"
-              }
-            >
-              <svg
-                className="size-5"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" />
-                <path d="M22 10v6" />
-                <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" />
-              </svg>
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[10px] tracking-wider text-lab-lime uppercase">
-                Phương pháp nghiên cứu
+              <span className={"hidden text-[11px] text-muted-foreground \x6dd:\x69nline"}>
+                <kbd className={"\x72ounded \x62order \x62order-sidebar-border px-1 \x66ont-mono"}>
+                  B
+                </kbd>{" "}
+                thu gọn
               </span>
-              <span className="block truncate text-xs font-semibold">
-                TamGiangPhysics — Khám phá bản chất
-              </span>
-            </span>
-            <svg
-              className={
-                "size-4 shrink-0 text-lab-lime transition-transform \x67roup-hover:\x74ranslate-x-0.\x35 \x67roup-hover:\x2dtranslate-y-0.\x35"
-              }
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M7 7h10v10" />
-              <path d="M7 17 17 7" />
-            </svg>
-            <span className={"\x73r-only"}>(mở trang trung tâm trong tab mới)</span>
-          </a>
-          <div className="flex items-center justify-between px-1">
-            <a
-              className={
-                "inline-flex min-h-9 items-center gap-2 rounded-md text-xs text-muted-foreground transition-colors hover:text-sidebar-foreground \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-sidebar-ring \x66ocus-visible:\x6futline-none"
-              }
-              href="#"
-            >
-              <svg
-                className="size-3.5"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect width="7" height="7" x="3" y="3" rx="1" />
-                <rect width="7" height="7" x="14" y="3" rx="1" />
-                <rect width="7" height="7" x="14" y="14" rx="1" />
-                <rect width="7" height="7" x="3" y="14" rx="1" />
-              </svg>
-              Tổng quan thư viện
-            </a>
-            <span className={"hidden text-[11px] text-muted-foreground \x6dd:\x69nline"}>
-              <kbd className={"\x72ounded \x62order \x62order-sidebar-border px-1 \x66ont-mono"}>
-                B
-              </kbd>{" "}
-              thu gọn
-            </span>
-            <span className={"\x6dd:\x68idden"}>
-              <div className={"flex flex-wrap items-center justify-center gap-2 \x6dd:\x66lex-row"}>
-                <button
-                  className={
-                    "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x62order \x62g-background \x73hadow-xs \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x62order-input \x64ark:\x62g-input/\x330 \x64ark:\x68over:\x62g-input/\x350 size-9"
-                  }
+              <div className={"\x6dd:\x68idden"}>
+                <div
+                  className={"flex flex-wrap items-center justify-center gap-2 \x6dd:\x66lex-row"}
                 >
-                  <svg
-                    className={"hidden [\x68tml.\x64ark_&]:\x62lock"}
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
+                  <button
+                    type="button"
+                    onClick={onToggleTheme}
+                    className={
+                      "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all \x6futline-none \x66ocus-visible:\x62order-ring \x66ocus-visible:\x72ing-[\x33px] \x66ocus-visible:\x72ing-ring/\x350 \x64isabled:\x70ointer-events-none disabled:opacity-50 \x61ria-invalid:\x62order-destructive \x61ria-invalid:\x72ing-destructive/\x320 \x64ark:\x61ria-invalid:\x72ing-destructive/\x340 [&\x5fsvg]:\x70ointer-events-none [&\x5fsvg]:\x73hrink-0 [&\x5fsvg:\x6eot([\x63lass*='\x73ize-'])]:\x73ize-4 \x62order \x62g-background \x73hadow-xs \x68over:\x62g-accent hover:text-accent-foreground \x64ark:\x62order-input \x64ark:\x62g-input/\x330 \x64ark:\x68over:\x62g-input/\x350 size-9"
+                    }
                   >
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2" />
-                    <path d="M12 20v2" />
-                    <path d="m4.93 4.93 1.41 1.41" />
-                    <path d="m17.66 17.66 1.41 1.41" />
-                    <path d="M2 12h2" />
-                    <path d="M20 12h2" />
-                    <path d="m6.34 17.66-1.41 1.41" />
-                    <path d="m19.07 4.93-1.41 1.41" />
-                  </svg>
-                  <svg
-                    className={"hidden [\x68tml.\x6cight_&]:\x62lock"}
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
-                  </svg>
-                  <span className={"\x73r-only"}>Toggle theme</span>
-                </button>
+                    <svg
+                      className={"hidden [\x68tml.\x64ark_&]:\x62lock"}
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <circle cx="12" cy="12" r="4" />
+                      <path d="M12 2v2" />
+                      <path d="M12 20v2" />
+                      <path d="m4.93 4.93 1.41 1.41" />
+                      <path d="m17.66 17.66 1.41 1.41" />
+                      <path d="M2 12h2" />
+                      <path d="M20 12h2" />
+                      <path d="m6.34 17.66-1.41 1.41" />
+                      <path d="m19.07 4.93-1.41 1.41" />
+                    </svg>
+                    <svg
+                      className={"hidden [\x68tml.\x6cight_&]:\x62lock"}
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
+                    </svg>
+                    <span className={"\x73r-only"}>Toggle theme</span>
+                  </button>
+                </div>
               </div>
-            </span>
-          </div>
-        </footer>
-      </div>
-    </aside>
+            </div>
+          </footer>
+        </div>
+      </aside>
+    </>
   );
 }
 
-function ImportedSectionChNMT() {
+function ImportedSectionChNMT({ onFocusSearch }: { onFocusSearch: () => void }) {
   return (
     <section className={"relative overflow-hidden \x62order-b"} aria-labelledby="welcome-title">
       <div
@@ -1073,6 +1050,7 @@ function ImportedSectionChNMT() {
               </svg>
             </a>
             <button
+              onClick={onFocusSearch}
               className={
                 "inline-flex h-12 items-center gap-3 rounded-full \x62order \x62order-lab-line \x62g-lab-surface/\x380 pr-2 pl-5 text-sm text-lab-subtle \x62ackdrop-blur transition-colors \x68over:\x62order-lab-green/\x340 hover:text-lab-ink \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
               }
@@ -1262,7 +1240,9 @@ function ImportedSectionChNMT() {
   );
 }
 
-function ImportedSectionLP10() {
+type OpenTopicFn = (gradeSlug: string, partSlug: string, topicSlug: string) => void;
+
+function ImportedSectionLP10({ onOpenTopic }: { onOpenTopic: OpenTopicFn }) {
   return (
     <section aria-labelledby="grade-0">
       <div className="mb-5 flex items-baseline justify-between gap-4">
@@ -1380,6 +1360,13 @@ function ImportedSectionLP10() {
                   </svg>
                 </span>
                 <button
+                  onClick={() =>
+                    onOpenTopic(
+                      "lop-10",
+                      "co-hoc-phan-1",
+                      "chu-de-1-gioi-thieu-muc-dich-hoc-tap-mon-vat-ly",
+                    )
+                  }
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -1520,6 +1507,9 @@ function ImportedSectionLP10() {
                   </svg>
                 </span>
                 <button
+                  onClick={() =>
+                    onOpenTopic("lop-10", "co-hoc-phan-1", "chu-de-2-mo-ta-chuyen-dong")
+                  }
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -1660,6 +1650,9 @@ function ImportedSectionLP10() {
                   </svg>
                 </span>
                 <button
+                  onClick={() =>
+                    onOpenTopic("lop-10", "co-hoc-phan-1", "chu-de-3-luc-va-chuyen-dong")
+                  }
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -1696,7 +1689,7 @@ function ImportedSectionLP10() {
   );
 }
 
-function ImportedSectionLP11() {
+function ImportedSectionLP11({ onOpenTopic }: { onOpenTopic: OpenTopicFn }) {
   return (
     <section aria-labelledby="grade-1">
       <div className="mb-5 flex items-baseline justify-between gap-4">
@@ -1815,6 +1808,7 @@ function ImportedSectionLP11() {
                   </svg>
                 </span>
                 <button
+                  onClick={() => onOpenTopic("lop-11", "song", "chu-de-1-song-co")}
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -1942,6 +1936,7 @@ function ImportedSectionLP11() {
                   </svg>
                 </span>
                 <button
+                  onClick={() => onOpenTopic("lop-11", "song", "chu-de-2-song-dien-tu")}
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -2082,6 +2077,7 @@ function ImportedSectionLP11() {
                   </svg>
                 </span>
                 <button
+                  onClick={() => onOpenTopic("lop-11", "song", "chu-de-3-giao-thoa-song")}
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -2221,6 +2217,7 @@ function ImportedSectionLP11() {
                   </svg>
                 </span>
                 <button
+                  onClick={() => onOpenTopic("lop-11", "song", "chu-de-4-song-dung")}
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -2257,7 +2254,7 @@ function ImportedSectionLP11() {
   );
 }
 
-function ImportedSectionLP12() {
+function ImportedSectionLP12({ onOpenTopic }: { onOpenTopic: OpenTopicFn }) {
   return (
     <section aria-labelledby="grade-2">
       <div className="mb-5 flex items-baseline justify-between gap-4">
@@ -2378,6 +2375,7 @@ function ImportedSectionLP12() {
                   </svg>
                 </span>
                 <button
+                  onClick={() => onOpenTopic("lop-12", "chat-khi", "chu-de-1-chat-khi")}
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -2517,6 +2515,7 @@ function ImportedSectionLP12() {
                   </svg>
                 </span>
                 <button
+                  onClick={() => onOpenTopic("lop-12", "nhiet-hoc", "chu-de-1-nhiet-hoc")}
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -2659,6 +2658,7 @@ function ImportedSectionLP12() {
                   </svg>
                 </span>
                 <button
+                  onClick={() => onOpenTopic("lop-12", "tu-truong", "chu-de-1-tu-truong")}
                   className={
                     "relative z-10 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs text-lab-subtle transition-colors \x68over:\x62g-lab-tint hover:text-lab-green \x66ocus-visible:\x72ing-2 \x66ocus-visible:\x72ing-lab-green \x66ocus-visible:\x6futline-none"
                   }
@@ -2708,9 +2708,9 @@ function ImportedSectionLTrNh4() {
         Giáo trình được sắp theo đúng trình tự học hiệu quả — màu sắc giúp bạn nhận ra ngay.
       </p>
       <ol className="relative mt-6 grid gap-5 sm:grid-cols-4 sm:gap-3">
-        <span
+        <li
           className={
-            "absolute top-4 right-[12%] left-[12%] hidden h-px \x62g-gradient-to-r \x66rom-kind-theory \x76ia-kind-exercise \x74o-kind-practice opacity-50 \x73m:\x62lock"
+            "pointer-events-none list-none absolute top-4 right-[12%] left-[12%] hidden h-px \x62g-gradient-to-r \x66rom-kind-theory \x76ia-kind-exercise \x74o-kind-practice opacity-50 \x73m:\x62lock"
           }
           aria-hidden="true"
         />
@@ -2811,7 +2811,7 @@ function ImportedAsideMuNCTh() {
     >
       <div className="relative max-w-xl space-y-3">
         <p className="text-[10px] font-semibold tracking-[0.2em] text-[#36D9E8] uppercase">
-          Phòng Thí Nghiệm Số TamGiangPhysics
+          Phòng Thí Nghiệm Số · Trường THPT Tam Giang
         </p>
         <h2
           className="text-xl font-bold tracking-tight text-[#F4F8FC] md:text-2xl"
