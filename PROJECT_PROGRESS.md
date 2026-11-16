@@ -139,3 +139,34 @@ Chấm số chấp nhận `12,5` lẫn `12.5`, `a·10ⁿ`, `a*10^n`, phân số 
 | Bản self-host | `npx vite build` vẫn ra `.output/server/index.mjs`; preview cổng 3000 chạy bình thường |
 
 **Giới hạn khi chạy trên Vercel (serverless):** hệ thống tài khoản dùng SQLite trên đĩa. Trên Vercel, đĩa của hàm là **tạm thời và không dùng chung giữa các instance** ⇒ phiên đăng nhập có thể không nhất quán và dữ liệu mất khi instance bị thu hồi. Máy chủ đã xử lý an toàn: nếu không mở được CSDL thì API trả `503 accounts_unavailable` và website vẫn chạy ở chế độ khách (luyện tập + tiến độ trong `localStorage`). Muốn đủ tính năng tài khoản trên web, cần một máy chủ có đĩa bền (self-host node server) làm backend và trỏ `TAMGIANG_API_BASE_URL` tới đó — hiện chưa triển khai.
+
+### 8. Hướng dẫn tự xuất bản (do bạn thực hiện — sandbox không ra ngoài được tới vercel.com)
+
+**Cách 1 — Vercel (nhanh, giáo trình + luyện tập; tài khoản chỉ chạy chế độ khách)**
+
+| Trường trong Vercel | Giá trị |
+| --- | --- |
+| Framework Preset | `Other` |
+| Install Command | `npx -y pnpm@9 install --no-lockfile` (`npm install` sẽ lỗi vì repo không có lockfile) |
+| Build Command | `npm run build:vercel` |
+| Output Directory | `.vercel/output` |
+| Node.js Version | `22.x` (cần ≥ 22.5 cho `node:sqlite`) |
+| Project Name | `tamgianglap` → URL `https://tamgianglap.vercel.app` |
+
+Biến môi trường nên đặt: `TAMGIANG_DATA_DIR=/tmp` (để SQLite mở được trong hàm serverless) — nhưng dữ liệu vẫn là tạm thời, nên **không nên dùng tính năng đăng ký/đăng nhập trên bản Vercel**. Đặt `TAMGIANG_ADMIN_EMAILS` nếu cần vai trò giáo viên.
+
+**Cách 2 — Máy chủ có đĩa bền (khuyến nghị nếu cần đủ tính năng tài khoản)**
+Dùng một VPS / Railway / Render / Fly.io có đĩa bền:
+
+```bash
+npx -y pnpm@9 install --no-lockfile
+npx vite build                       # tạo .output/server/index.mjs
+PORT=3000 HOST=0.0.0.0 \
+TAMGIANG_DATA_DIR=/var/lib/tamgiang \
+TAMGIANG_PUBLIC_URL=https://tamgianglap.<domain-cua-ban> \
+node .output/server/index.mjs
+```
+
+Ghi `TAMGIANG_DATA_DIR` vào thư mục đĩa bền (kèm sao lưu hằng ngày — `runDailyBackup` tự tạo bản sao trong `<data>/backups`, giữ 7 bản). Khi đó đăng ký/đăng nhập, lịch sử làm bài và đồng bộ tiến độ đều hoạt động đầy đủ.
+
+**Cách 3 — Tên miền riêng**: sau khi deploy, vào Vercel → Project → Settings → Domains, thêm `tamgianglap.vn` (hoặc tên miền của trường) và trỏ CNAME về `cname.vercel-dns.com`.
