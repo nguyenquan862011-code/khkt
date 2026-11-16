@@ -40,6 +40,7 @@ import {
   Waves,
   Orbit,
   GraduationCap,
+  FlaskConical,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -185,6 +186,12 @@ const LAB_EXPERIMENTS: FeaturedLabExperiment[] = [
 ];
 
 const ECOSYSTEM_MODULES = [
+  {
+    to: "/thi-nghiem" as const,
+    title: "Thư viện Thí nghiệm",
+    subtitle: "Thí nghiệm có mô phỏng tương tác, bảng số liệu và câu hỏi kiểm tra",
+    icon: FlaskConical,
+  },
   {
     to: "/thi-nghiem-kinh-dien" as const,
     title: "30 Thí nghiệm Kinh điển",

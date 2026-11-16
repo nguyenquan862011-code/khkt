@@ -19,6 +19,7 @@ import {
   Search,
   BookMarked,
   ListChecks,
+  FlaskConical,
 } from "lucide-react";
 
 interface SiteHeaderProps {
@@ -47,6 +48,7 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
     { href: "/", label: "Trang chủ", icon: null },
     { href: "/mo-phong", label: "Phòng Lab", icon: Compass },
     { href: "/thi-nghiem-kinh-dien", label: "Kinh điển (CE)", icon: History },
+    { href: "/thi-nghiem", label: "Thư viện TN", icon: FlaskConical },
     { href: "/vdc", label: "Thử thách VDC", icon: Award },
     { href: "/luyen-tap", label: "Luyện tập", icon: ListChecks },
     { href: "/thiet-ke-thi-nghiem", label: "Thiết kế Lab", icon: Sliders },
