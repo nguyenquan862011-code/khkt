@@ -19,6 +19,8 @@ import { Route as ThietKeThiNghiemRouteImport } from './routes/thiet-ke-thi-nghi
 import { Route as VdcRouteImport } from './routes/vdc'
 import { Route as MoPhongIndexRouteImport } from './routes/mo-phong_.index'
 import { Route as MoPhongSplatRouteImport } from './routes/mo-phong_.$'
+import { Route as ThiNghiemIndexRouteImport } from './routes/thi-nghiem_.index'
+import { Route as ThiNghiemSlugRouteImport } from './routes/thi-nghiem_.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +72,16 @@ const MoPhongSplatRoute = MoPhongSplatRouteImport.update({
   path: '/mo-phong/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ThiNghiemIndexRoute = ThiNghiemIndexRouteImport.update({
+  id: '/thi-nghiem_/',
+  path: '/thi-nghiem/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThiNghiemSlugRoute = ThiNghiemSlugRouteImport.update({
+  id: '/thi-nghiem_/$slug',
+  path: '/thi-nghiem/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -81,7 +93,9 @@ export interface FileRoutesByFullPath {
   '/thiet-ke-thi-nghiem': typeof ThietKeThiNghiemRoute
   '/vdc': typeof VdcRoute
   '/mo-phong/$': typeof MoPhongSplatRoute
+  '/thi-nghiem/$slug': typeof ThiNghiemSlugRoute
   '/mo-phong/': typeof MoPhongIndexRoute
+  '/thi-nghiem/': typeof ThiNghiemIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,7 +107,9 @@ export interface FileRoutesByTo {
   '/thiet-ke-thi-nghiem': typeof ThietKeThiNghiemRoute
   '/vdc': typeof VdcRoute
   '/mo-phong/$': typeof MoPhongSplatRoute
+  '/thi-nghiem/$slug': typeof ThiNghiemSlugRoute
   '/mo-phong': typeof MoPhongIndexRoute
+  '/thi-nghiem': typeof ThiNghiemIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,7 +122,9 @@ export interface FileRoutesById {
   '/thiet-ke-thi-nghiem': typeof ThietKeThiNghiemRoute
   '/vdc': typeof VdcRoute
   '/mo-phong_/$': typeof MoPhongSplatRoute
+  '/thi-nghiem_/$slug': typeof ThiNghiemSlugRoute
   '/mo-phong_/': typeof MoPhongIndexRoute
+  '/thi-nghiem_/': typeof ThiNghiemIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -120,7 +138,9 @@ export interface FileRouteTypes {
     | '/thiet-ke-thi-nghiem'
     | '/vdc'
     | '/mo-phong/$'
+    | '/thi-nghiem/$slug'
     | '/mo-phong/'
+    | '/thi-nghiem/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -132,7 +152,9 @@ export interface FileRouteTypes {
     | '/thiet-ke-thi-nghiem'
     | '/vdc'
     | '/mo-phong/$'
+    | '/thi-nghiem/$slug'
     | '/mo-phong'
+    | '/thi-nghiem'
   id:
     | '__root__'
     | '/'
@@ -144,7 +166,9 @@ export interface FileRouteTypes {
     | '/thiet-ke-thi-nghiem'
     | '/vdc'
     | '/mo-phong_/$'
+    | '/thi-nghiem_/$slug'
     | '/mo-phong_/'
+    | '/thi-nghiem_/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -157,7 +181,9 @@ export interface RootRouteChildren {
   ThietKeThiNghiemRoute: typeof ThietKeThiNghiemRoute
   VdcRoute: typeof VdcRoute
   MoPhongSplatRoute: typeof MoPhongSplatRoute
+  ThiNghiemSlugRoute: typeof ThiNghiemSlugRoute
   MoPhongIndexRoute: typeof MoPhongIndexRoute
+  ThiNghiemIndexRoute: typeof ThiNghiemIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +258,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MoPhongSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/thi-nghiem_/': {
+      id: '/thi-nghiem_/'
+      path: '/thi-nghiem'
+      fullPath: '/thi-nghiem/'
+      preLoaderRoute: typeof ThiNghiemIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/thi-nghiem_/$slug': {
+      id: '/thi-nghiem_/$slug'
+      path: '/thi-nghiem/$slug'
+      fullPath: '/thi-nghiem/$slug'
+      preLoaderRoute: typeof ThiNghiemSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -245,7 +285,9 @@ const rootRouteChildren: RootRouteChildren = {
   ThietKeThiNghiemRoute: ThietKeThiNghiemRoute,
   VdcRoute: VdcRoute,
   MoPhongSplatRoute: MoPhongSplatRoute,
+  ThiNghiemSlugRoute: ThiNghiemSlugRoute,
   MoPhongIndexRoute: MoPhongIndexRoute,
+  ThiNghiemIndexRoute: ThiNghiemIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
