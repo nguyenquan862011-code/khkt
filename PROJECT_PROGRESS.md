@@ -127,3 +127,15 @@ Chấm số chấp nhận `12,5` lẫn `12.5`, `a·10ⁿ`, `a*10^n`, phân số 
 - Dữ liệu tài khoản nằm ngoài Git (`.gitignore`: `/data/`, `.env`, `.env.*`, `!.env.example`).
 - Biến môi trường tuỳ chọn xem `.env.example`: `TAMGIANG_DB_FILE`, `TAMGIANG_DATA_DIR`, `TAMGIANG_PUBLIC_URL`, `TAMGIANG_ADMIN_EMAILS`, `RESEND_API_KEY`, `TAMGIANG_MAIL_FROM`, `TAMGIANG_DEV_MAIL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 - `src/routeTree.gen.ts` là tệp sinh tự động — không sửa tay, chạy `npx vite build` để sinh lại.
+
+## 7. Chuẩn bị xuất bản (đợt 15/11/2026)
+
+| Việc | Đã làm |
+| --- | --- |
+| Tên dự án | `package.json` → `"name": "tamgianglap"`; thêm `"engines": { "node": "22.x" }` (cần Node ≥ 22.5 cho `node:sqlite`) |
+| Build cho Vercel | `vite.config.ts` đọc `NITRO_PRESET` (mặc định `node-server`); thêm script `build:vercel` = `NITRO_PRESET=vercel vite build` |
+| Kiểm thử bản build Vercel | `NITRO_PRESET=vercel npx vite build` → exit 0, sinh `.vercel/output/` đúng chuẩn Build Output API v3 (`config.json` framework `nitro`, thư mục `functions/__server.func`, `static/`) |
+| `.gitignore` | thêm `.vercel` |
+| Bản self-host | `npx vite build` vẫn ra `.output/server/index.mjs`; preview cổng 3000 chạy bình thường |
+
+**Giới hạn khi chạy trên Vercel (serverless):** hệ thống tài khoản dùng SQLite trên đĩa. Trên Vercel, đĩa của hàm là **tạm thời và không dùng chung giữa các instance** ⇒ phiên đăng nhập có thể không nhất quán và dữ liệu mất khi instance bị thu hồi. Máy chủ đã xử lý an toàn: nếu không mở được CSDL thì API trả `503 accounts_unavailable` và website vẫn chạy ở chế độ khách (luyện tập + tiến độ trong `localStorage`). Muốn đủ tính năng tài khoản trên web, cần một máy chủ có đĩa bền (self-host node server) làm backend và trỏ `TAMGIANG_API_BASE_URL` tới đó — hiện chưa triển khai.
