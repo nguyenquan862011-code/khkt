@@ -23,6 +23,8 @@ Nhật ký trạng thái dự án. Cập nhật lần cuối: **15/11/2026** (đ
 | `npx tsc --noEmit -p .` | **93 lỗi** | **đúng bằng gốc (93)**; trong đó **0 lỗi** thuộc mọi tệp mới/sửa |
 | Kiểm thử trình duyệt (chromium headless) | toàn bộ luồng OK (khách → đăng ký → làm bài → lịch sử → đăng xuất → thiết bị mới thấy dữ liệu cũ) | đã thực hiện ở đợt trước |
 
+**Đợt kiểm tra lại (15/11/2026, sau khi dựng lại `node_modules`):** build exit 0 · vitest 11 file / 74 test pass · eslint 0 lỗi / 10 cảnh báo · tsc 93 lỗi (= gốc, không lỗi nào ở tệp mới). Preview đã khởi động lại từ bản build mới và kiểm thử API trực tiếp: đăng ký → xoá tài khoản → `me = null`, tất cả trả `ok: true`; `/api/admin/overview` trả `forbidden` với tài khoản học sinh.
+
 93 lỗi TypeScript còn lại là **nợ kỹ thuật có sẵn** của repo (ở `src/lib/physics-simulations.ts`, `src/routes/mo-phong_.index.tsx`, `src/components/interactive-physics-lab.tsx`, `src/components/wave-interference-experiment.tsx`, `src/test/*`). Không nằm trong phạm vi Giai đoạn 1.
 
 ---
