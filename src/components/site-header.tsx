@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { AudioController } from "@/components/audio-controller";
 import { GlobalSearchModal } from "@/components/global-search-modal";
 import { StudyAssistantDrawer } from "@/components/study-assistant-drawer";
+import { AccountButton } from "@/components/account-button";
 import {
   Compass,
   BookOpen,
@@ -17,6 +18,7 @@ import {
   Calculator,
   Search,
   BookMarked,
+  ListChecks,
 } from "lucide-react";
 
 interface SiteHeaderProps {
@@ -46,6 +48,7 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
     { href: "/mo-phong", label: "Phòng Lab", icon: Compass },
     { href: "/thi-nghiem-kinh-dien", label: "Kinh điển (CE)", icon: History },
     { href: "/vdc", label: "Thử thách VDC", icon: Award },
+    { href: "/luyen-tap", label: "Luyện tập", icon: ListChecks },
     { href: "/thiet-ke-thi-nghiem", label: "Thiết kế Lab", icon: Sliders },
     { href: "/cong-thuc", label: "Công thức", icon: Calculator },
     { href: "/tai-lieu", label: "Tài liệu", icon: BookOpen },
@@ -55,10 +58,10 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
     <header className="sticky top-0 z-40 w-full border-b border-[#153325] dark:border-[#12261C] bg-[#091A13] dark:bg-[#06120D] text-[#EDF5ED] backdrop-blur-md transition-colors duration-200">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
         {/* Brand Logo & Name */}
-        <div className="flex items-center gap-4 lg:gap-6">
+        <div className="flex min-w-0 items-center gap-4 lg:gap-6">
           <Link
             to="/"
-            className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38A875] rounded-lg p-0.5 shrink-0"
+            className="flex min-w-0 items-center gap-2 overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38A875] rounded-lg p-0.5 sm:shrink-0"
             title="Trường THPT Tam Giang — Về trang chủ"
           >
             <Logo size="md" />
@@ -103,7 +106,7 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
           <button
             type="button"
             onClick={() => setNotesOpen(true)}
-            className="flex h-8.5 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs text-[#C8ED78] hover:bg-white/10 transition-colors whitespace-nowrap shrink-0"
+            className="hidden sm:flex h-8.5 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 text-xs text-[#C8ED78] hover:bg-white/10 transition-colors whitespace-nowrap shrink-0"
             title="Mở Sổ tay Tiến độ & Ghi chú"
             aria-label="Mở Sổ tay Tiến độ"
           >
@@ -116,6 +119,9 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
 
           {/* Light / Dark Mode Toggle */}
           <ThemeToggle />
+
+          {/* Tài khoản học sinh (khách vẫn dùng được toàn bộ bài học & thí nghiệm) */}
+          <AccountButton active={activePath === "/tai-khoan"} />
 
           {/* Primary Action Button: "Vào phòng thí nghiệm" */}
           <Link
@@ -144,6 +150,18 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
       {mobileMenuOpen && (
         <div className="border-b border-[#153325] bg-[#091A13] dark:bg-[#06120D] px-4 py-3 xl:hidden">
           <nav className="flex flex-col gap-1">
+            {/* Trên điện thoại nút Sổ tay được đưa vào menu để thanh tiêu đề không tràn ngang */}
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setNotesOpen(true);
+              }}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-xs font-medium text-[#C8ED78] hover:bg-white/5 sm:hidden"
+            >
+              <BookMarked className="size-3.5" />
+              Sổ tay tiến độ & ghi chú
+            </button>
             {navLinks.map((item) => {
               const isActive = activePath === item.href;
               const Icon = item.icon;

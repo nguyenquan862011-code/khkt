@@ -2,6 +2,9 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { getRequestUser, handleAccountApi } from "./backend/api";
+import { getDatabase } from "./backend/db";
+import { listAttempts } from "./backend/store";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -17,23 +20,6 @@ async function getServerEntry(): Promise<ServerEntry> {
   }
   return serverEntryPromise;
 }
-
-// In-memory submissions log for real persistence across requests
-interface ServerSubmissionItem {
-  id: string;
-  lessonPath: string;
-  title: string;
-  mode: string;
-  score: number;
-  rawScore: number;
-  correctCount: number;
-  totalQuestions: number;
-  timeSpent: string;
-  submittedAt: string;
-  receivedAt: string;
-}
-
-const inMemorySubmissions: ServerSubmissionItem[] = [];
 
 // h3 swallows in-handler throws into a normal 500 Response with body
 // {"unhandled":true,"message":"HTTPError"} — try/catch alone never fires for those.
@@ -65,75 +51,46 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     const url = new URL(request.url);
 
-    // 1. API endpoint for storing and retrieving student submissions & scores
+    // 0. Tài khoản, nhật ký học tập và đồng bộ tiến độ (/api/auth, /api/me, /api/admin)
+    const accountResponse = await handleAccountApi(request);
+    if (accountResponse) return accountResponse;
+
+    // 1. Endpoint tương thích cho cầu nối nộp bài trong iframe mô phỏng.
+    //    Kết quả được trang cha lưu qua /api/me/attempts (có xác thực). Endpoint này không còn
+    //    giữ danh sách dùng chung trong bộ nhớ và chỉ trả về bài làm của chính người đang đăng nhập.
     if (url.pathname === "/api/submissions") {
       const headers = new Headers({
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
       });
-
       if (request.method === "OPTIONS") {
         return new Response(null, { status: 204, headers });
       }
-
       if (request.method === "POST") {
-        try {
-          const body = (await request.json()) as Partial<ServerSubmissionItem>;
-          const submissionItem: ServerSubmissionItem = {
-            id: `SUB-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            lessonPath: body.lessonPath || "",
-            title: body.title || "Bài kiểm tra Vật lý",
-            mode: body.mode || "thi",
-            score: typeof body.score === "number" ? body.score : 0,
-            rawScore: typeof body.rawScore === "number" ? body.rawScore : 0,
-            correctCount: typeof body.correctCount === "number" ? body.correctCount : 0,
-            totalQuestions: typeof body.totalQuestions === "number" ? body.totalQuestions : 0,
-            timeSpent: body.timeSpent || "00:00",
-            submittedAt: body.submittedAt || new Date().toISOString(),
-            receivedAt: new Date().toISOString(),
-          };
-
-          inMemorySubmissions.unshift(submissionItem);
-          if (inMemorySubmissions.length > 200) {
-            inMemorySubmissions.pop();
-          }
-
-          return new Response(
-            JSON.stringify({
-              success: true,
-              message:
-                "Bài làm đã được chấm điểm và lưu vào hệ thống Trường THPT Tam Giang thành công.",
-              submissionId: submissionItem.id,
-              data: submissionItem,
-            }),
-            { status: 200, headers },
-          );
-        } catch (err) {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              message: "Lỗi định dạng dữ liệu bài nộp",
-              error: String(err),
-            }),
-            { status: 400, headers },
-          );
-        }
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: "Bài làm đã được chấm điểm. Đăng nhập để lưu vào nhật ký học tập của bạn.",
+          }),
+          { status: 200, headers },
+        );
       }
-
-      // GET: return list of submissions
+      const user = getRequestUser(request);
+      const db = getDatabase();
+      if (!user || !db) {
+        return new Response(
+          JSON.stringify({ success: false, message: "Bạn cần đăng nhập để xem lịch sử bài làm." }),
+          { status: 401, headers },
+        );
+      }
       const lessonQuery = url.searchParams.get("lesson");
-      const filtered = lessonQuery
-        ? inMemorySubmissions.filter((item) => item.lessonPath.includes(lessonQuery))
-        : inMemorySubmissions;
-
+      const submissions = listAttempts(db, user.id, { limit: 200 }).filter(
+        (item) =>
+          item.source === "lesson" &&
+          (!lessonQuery || (item.lessonKey ?? "").includes(lessonQuery)),
+      );
       return new Response(
-        JSON.stringify({
-          success: true,
-          count: filtered.length,
-          submissions: filtered,
-        }),
+        JSON.stringify({ success: true, count: submissions.length, submissions }),
         { status: 200, headers },
       );
     }

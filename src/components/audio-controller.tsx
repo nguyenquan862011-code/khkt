@@ -179,14 +179,14 @@ export function AudioController({ className = "" }: AudioControllerProps) {
             <Play className="size-3 text-[#EDF5ED]/70 fill-current" />
           )}
 
-          <span className="max-w-[120px] truncate font-medium text-[11px] text-[#EDF5ED]/90">
+          <span className="hidden md:inline max-w-[120px] truncate font-medium text-[11px] text-[#EDF5ED]/90">
             {audioState.currentTrack.title}
           </span>
         </button>
 
         {/* Status indicator tag */}
         <span
-          className={`px-1 py-0.2 text-[9px] font-mono rounded ${
+          className={`hidden md:inline px-1 py-0.2 text-[9px] font-mono rounded ${
             audioState.currentTrack.isCustom
               ? "text-[#C8ED78] bg-[#16845A]/50"
               : audioState.currentTrack.isAvailable

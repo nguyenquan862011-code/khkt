@@ -4,6 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Footer } from "@/components/footer";
 import { UniformCircularMotionExperiment } from "@/components/circular-motion-experiment";
 import { ExperimentPhoto } from "@/components/experiment-photo";
+import { ExperimentPracticeLink } from "@/components/practice/experiment-practice-link";
 import { ShowcaseTopics } from "@/components/showcase-topics";
 import { InteractivePhysicsLab } from "@/components/interactive-physics-lab";
 import { curriculum, searchLessons, type LessonMeta } from "@/data/curriculum";
@@ -430,6 +431,16 @@ function Index() {
               {/* Right Column: Featured Uniform Circular Motion Interactive Simulation */}
               <div className="lg:col-span-7">
                 <UniformCircularMotionExperiment />
+                <div className="mt-3 grid items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 sm:grid-cols-[11rem_1fr]">
+                  <ExperimentPhoto photoId="circular-motion" compact showCaption={false} />
+                  <div className="space-y-2 text-xs leading-relaxed text-[#EDF5ED]/85">
+                    <p>
+                      <b className="text-[#C8ED78]">Đối chiếu thực tế:</b> vành bánh xe quay đều —
+                      mọi điểm trên vành có cùng tốc độ góc, gia tốc luôn hướng vào trục quay.
+                    </p>
+                    <ExperimentPracticeLink experimentId="circular-motion" />
+                  </div>
+                </div>
               </div>
             </div>
 

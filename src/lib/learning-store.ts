@@ -22,6 +22,8 @@ export interface LearningState {
   favoriteLessons: string[];
   favoriteDocs: string[];
   solvedVdcIds: string[];
+  /** Mã các câu hỏi trong ngân hàng bài tập được đánh dấu để xem lại. */
+  savedQuestions: string[];
   notes: Record<string, StudyNote>;
   preferences: StudyPreferences;
 }
@@ -48,6 +50,7 @@ function getDefaultState(): LearningState {
     favoriteLessons: [],
     favoriteDocs: [],
     solvedVdcIds: [],
+    savedQuestions: [],
     notes: {},
     preferences: getDefaultPreferences(),
   };
@@ -73,6 +76,7 @@ function readStorage(): LearningState {
       favoriteLessons: Array.isArray(parsed.favoriteLessons) ? parsed.favoriteLessons : [],
       favoriteDocs: Array.isArray(parsed.favoriteDocs) ? parsed.favoriteDocs : [],
       solvedVdcIds: Array.isArray(parsed.solvedVdcIds) ? parsed.solvedVdcIds : [],
+      savedQuestions: Array.isArray(parsed.savedQuestions) ? parsed.savedQuestions : [],
       notes: parsed.notes && typeof parsed.notes === "object" ? parsed.notes : {},
       preferences:
         pref && typeof pref === "object"
@@ -235,4 +239,59 @@ export function resetLearningProgress(): LearningState {
   const empty = getDefaultState();
   writeStorage(empty);
   return empty;
+}
+
+export function toggleSavedQuestion(questionId: string): LearningState {
+  const cur = getLearningState();
+  const next: LearningState = {
+    ...cur,
+    savedQuestions: toggleInList(cur.savedQuestions, questionId).slice(0, 500),
+  };
+  writeStorage(next);
+  return next;
+}
+
+/**
+ * Thay toàn bộ tiến độ cục bộ bằng dữ liệu đã đồng bộ từ tài khoản (hoặc xoá về mặc định khi đăng xuất).
+ * Dữ liệu được chuẩn hoá lại qua cùng bộ kiểm tra như khi đọc từ localStorage.
+ */
+export function replaceLearningState(next: unknown): LearningState {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(LEARNING_STORAGE_KEY, JSON.stringify(next ?? {}));
+    } catch {
+      // bộ nhớ đầy: vẫn giữ trạng thái trong phiên hiện tại
+    }
+  }
+  const clean = readStorage();
+  writeStorage(clean);
+  return clean;
+}
+
+const LIST_KEYS = [
+  "viewedLessons",
+  "completedLabs",
+  "favoriteExperiments",
+  "favoriteFormulas",
+  "favoriteLessons",
+  "favoriteDocs",
+  "solvedVdcIds",
+  "savedQuestions",
+] as const;
+
+/** Hợp nhất tiến độ của hai thiết bị: gộp danh sách (không trùng), ghi chú lấy bản sửa mới hơn. */
+export function mergeLearningStates(
+  local: LearningState,
+  remote: Partial<LearningState>,
+): LearningState {
+  const merged: LearningState = { ...local, notes: { ...local.notes } };
+  for (const key of LIST_KEYS) {
+    const other = Array.isArray(remote[key]) ? (remote[key] as string[]) : [];
+    merged[key] = [...new Set([...local[key], ...other.filter((x) => typeof x === "string")])];
+  }
+  for (const [id, note] of Object.entries(remote.notes ?? {})) {
+    const mine = merged.notes[id];
+    if (!mine || (note?.updatedAt ?? "") > mine.updatedAt) merged.notes[id] = note;
+  }
+  return merged;
 }

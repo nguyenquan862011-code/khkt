@@ -8,10 +8,15 @@
 // hosting already compresses at the edge.
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
+import type { PresetName } from "nitro";
+
+// NITRO_PRESET=vercel (xem script "build:vercel") để sinh thư mục .vercel/output cho Vercel.
+// Mặc định vẫn là node-server để chạy self-host bằng `npm start`.
+const nitroPreset = (process.env["NITRO_PRESET"] ?? "node-server") as PresetName;
 
 export default defineConfig({
   nitro: {
-    preset: "node-server",
+    preset: nitroPreset,
   },
   vite: {
     server: {

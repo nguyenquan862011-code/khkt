@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CongThucRouteImport } from './routes/cong-thuc'
+import { Route as LuyenTapRouteImport } from './routes/luyen-tap'
+import { Route as TaiKhoanRouteImport } from './routes/tai-khoan'
 import { Route as TaiLieuRouteImport } from './routes/tai-lieu'
 import { Route as ThiNghiemKinhDienRouteImport } from './routes/thi-nghiem-kinh-dien'
 import { Route as ThietKeThiNghiemRouteImport } from './routes/thiet-ke-thi-nghiem'
@@ -26,6 +28,16 @@ const IndexRoute = IndexRouteImport.update({
 const CongThucRoute = CongThucRouteImport.update({
   id: '/cong-thuc',
   path: '/cong-thuc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LuyenTapRoute = LuyenTapRouteImport.update({
+  id: '/luyen-tap',
+  path: '/luyen-tap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TaiKhoanRoute = TaiKhoanRouteImport.update({
+  id: '/tai-khoan',
+  path: '/tai-khoan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TaiLieuRoute = TaiLieuRouteImport.update({
@@ -62,6 +74,8 @@ const MoPhongSplatRoute = MoPhongSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cong-thuc': typeof CongThucRoute
+  '/luyen-tap': typeof LuyenTapRoute
+  '/tai-khoan': typeof TaiKhoanRoute
   '/tai-lieu': typeof TaiLieuRoute
   '/thi-nghiem-kinh-dien': typeof ThiNghiemKinhDienRoute
   '/thiet-ke-thi-nghiem': typeof ThietKeThiNghiemRoute
@@ -72,6 +86,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cong-thuc': typeof CongThucRoute
+  '/luyen-tap': typeof LuyenTapRoute
+  '/tai-khoan': typeof TaiKhoanRoute
   '/tai-lieu': typeof TaiLieuRoute
   '/thi-nghiem-kinh-dien': typeof ThiNghiemKinhDienRoute
   '/thiet-ke-thi-nghiem': typeof ThietKeThiNghiemRoute
@@ -83,6 +99,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cong-thuc': typeof CongThucRoute
+  '/luyen-tap': typeof LuyenTapRoute
+  '/tai-khoan': typeof TaiKhoanRoute
   '/tai-lieu': typeof TaiLieuRoute
   '/thi-nghiem-kinh-dien': typeof ThiNghiemKinhDienRoute
   '/thiet-ke-thi-nghiem': typeof ThietKeThiNghiemRoute
@@ -95,6 +113,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cong-thuc'
+    | '/luyen-tap'
+    | '/tai-khoan'
     | '/tai-lieu'
     | '/thi-nghiem-kinh-dien'
     | '/thiet-ke-thi-nghiem'
@@ -105,6 +125,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/cong-thuc'
+    | '/luyen-tap'
+    | '/tai-khoan'
     | '/tai-lieu'
     | '/thi-nghiem-kinh-dien'
     | '/thiet-ke-thi-nghiem'
@@ -115,6 +137,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/cong-thuc'
+    | '/luyen-tap'
+    | '/tai-khoan'
     | '/tai-lieu'
     | '/thi-nghiem-kinh-dien'
     | '/thiet-ke-thi-nghiem'
@@ -126,6 +150,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CongThucRoute: typeof CongThucRoute
+  LuyenTapRoute: typeof LuyenTapRoute
+  TaiKhoanRoute: typeof TaiKhoanRoute
   TaiLieuRoute: typeof TaiLieuRoute
   ThiNghiemKinhDienRoute: typeof ThiNghiemKinhDienRoute
   ThietKeThiNghiemRoute: typeof ThietKeThiNghiemRoute
@@ -148,6 +174,20 @@ declare module '@tanstack/react-router' {
       path: '/cong-thuc'
       fullPath: '/cong-thuc'
       preLoaderRoute: typeof CongThucRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/luyen-tap': {
+      id: '/luyen-tap'
+      path: '/luyen-tap'
+      fullPath: '/luyen-tap'
+      preLoaderRoute: typeof LuyenTapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tai-khoan': {
+      id: '/tai-khoan'
+      path: '/tai-khoan'
+      fullPath: '/tai-khoan'
+      preLoaderRoute: typeof TaiKhoanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tai-lieu': {
@@ -198,6 +238,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CongThucRoute: CongThucRoute,
+  LuyenTapRoute: LuyenTapRoute,
+  TaiKhoanRoute: TaiKhoanRoute,
   TaiLieuRoute: TaiLieuRoute,
   ThiNghiemKinhDienRoute: ThiNghiemKinhDienRoute,
   ThietKeThiNghiemRoute: ThietKeThiNghiemRoute,

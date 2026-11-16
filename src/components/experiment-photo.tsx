@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Camera, ExternalLink } from "lucide-react";
+import { Camera, ExternalLink, X, ZoomIn } from "lucide-react";
 import { getExperimentPhoto, PHOTO_FALLBACK_TEXT } from "@/data/experiment-photos";
 
 interface ExperimentPhotoProps {
@@ -17,10 +17,27 @@ export function ExperimentPhoto({
 }: ExperimentPhotoProps) {
   const photo = getExperimentPhoto(photoId);
   const [hasError, setHasError] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
     setHasError(false);
+    setZoomed(false);
   }, [photoId]);
+
+  // Phóng to ảnh: đóng bằng phím Esc, khoá cuộn nền khi đang mở.
+  useEffect(() => {
+    if (!zoomed) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setZoomed(false);
+    };
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [zoomed]);
 
   if (!photo || hasError) {
     return (
@@ -46,7 +63,53 @@ export function ExperimentPhoto({
         <span className="absolute top-2 left-2 rounded-md bg-black/70 px-2 py-0.5 font-mono text-[10px] font-semibold text-[#C8ED78] backdrop-blur-xs">
           Ảnh thực tế · {photo.license}
         </span>
+        <button
+          type="button"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setZoomed(true);
+          }}
+          aria-label={`Phóng to ảnh: ${photo.title}`}
+          className="absolute right-2 bottom-2 flex size-9 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur-xs transition-colors hover:bg-black/90 focus-visible:ring-2 focus-visible:ring-[#C8ED78]"
+        >
+          <ZoomIn className="size-4" />
+        </button>
       </div>
+
+      {zoomed && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={photo.title}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setZoomed(false);
+          }}
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-3 bg-black/90 p-3 sm:p-6"
+        >
+          <button
+            type="button"
+            autoFocus
+            aria-label="Đóng ảnh phóng to"
+            className="absolute top-3 right-3 flex size-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
+          >
+            <X className="size-5" />
+          </button>
+          <img
+            src={photo.src}
+            alt={photo.title}
+            className="max-h-[78vh] max-w-full rounded-lg object-contain"
+          />
+          <p className="max-w-3xl text-center text-xs leading-relaxed text-white/85">
+            <span className="font-semibold text-white">{photo.title}</span> — {photo.caption}
+            <span className="mt-1 block font-mono text-[10px] text-white/60">
+              {photo.author} · {photo.license} · {photo.sourceName}
+            </span>
+          </p>
+        </div>
+      )}
 
       {showCaption && (
         <figcaption

@@ -193,7 +193,7 @@ export function ShowcaseTopics() {
         role="tablist"
         aria-label="Chuyên đề"
         aria-orientation="vertical"
-        className="-mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-2 lg:mx-0 lg:max-h-[38rem] lg:flex-col lg:overflow-y-auto lg:px-0 lg:pr-2"
+        className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:-mx-5 sm:px-5 lg:mx-0 lg:max-h-[38rem] lg:flex-col lg:overflow-y-auto lg:px-0 lg:pr-2"
       >
         {SHOWCASE_TOPICS.map((topic, idx) => {
           const isSelected = activeIndex === idx;
