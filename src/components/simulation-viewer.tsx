@@ -37,6 +37,8 @@ import {
 import type { SimulationDomainId } from "@/lib/physics-simulations";
 import { recordAttempt } from "@/lib/account/sync";
 import { InteractivePhysicsLab } from "@/components/interactive-physics-lab";
+import { LessonContentView } from "@/components/lesson-content-view";
+import { getLessonContent } from "@/data/lessons";
 
 function mapLessonToDomain(lesson: LessonMeta): SimulationDomainId {
   const hay = `${lesson.part} ${lesson.topic} ${lesson.name}`.toLowerCase();
@@ -189,10 +191,14 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
     }
   };
 
-  // Link tham khảo tới trang gốc của bài học (không proxy qua server của trường).
-  const referenceSourceUrl = lesson.simulationUrl || "";
+  // Link tham khảo ra trang gốc của bài học (KHÔNG proxy, KHÔNG nhúng).
+  // Chỉ dùng endpoint công khai /mo-phong/..., không lộ endpoint kỹ thuật /api/.
+  const referenceSourceUrl = lesson.simulationUrl
+    ? lesson.simulationUrl.replace("/api/mo-phong/", "/mo-phong/")
+    : "";
   const latestAttempt = submissions[0];
   const mappedDomain = mapLessonToDomain(lesson);
+  const authoredContent = getLessonContent(lesson.lessonSlug);
 
   return (
     <div
@@ -238,7 +244,19 @@ export function SimulationViewer({ lesson, onToggleSidebar }: SimulationViewerPr
       {/* Simulation Viewport */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto bg-background p-4 sm:p-6">
-          <InteractivePhysicsLab initialDomain={mappedDomain} compact />
+          {authoredContent ? (
+            <div className="space-y-6">
+              <LessonContentView content={authoredContent} />
+              <div className="mx-auto max-w-3xl border-t border-[#153325] pt-5">
+                <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-[#EDF5ED]">
+                  <Sliders className="size-4 text-[#72CF91]" /> Phòng thí nghiệm tương tác
+                </h2>
+                <InteractivePhysicsLab initialDomain={mappedDomain} compact />
+              </div>
+            </div>
+          ) : (
+            <InteractivePhysicsLab initialDomain={mappedDomain} compact />
+          )}
         </div>
       </div>
 
