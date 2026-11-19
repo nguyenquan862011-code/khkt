@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Play, ArrowRight, RotateCcw, Maximize2, ExternalLink, X } from "lucide-react";
+import { InteractivePhysicsLab } from "@/components/interactive-physics-lab";
 
 export interface ShowcaseTopic {
   id: string;
@@ -9,7 +10,6 @@ export interface ShowcaseTopic {
   title: string;
   sampleLessonName: string;
   sampleLessonPath: string;
-  simulationUrl: string;
   theory: number;
   example: number;
   exercise: number;
@@ -25,8 +25,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Làm quen với môn Vật lý",
     sampleLessonPath:
       "lop-10/co-hoc-phan-1/chu-de-1-gioi-thieu-muc-dich-hoc-tap-mon-vat-ly/bai-1-lam-quen-voi-mon-vat-ly/1-ly-thuyet-lam-quen-voi-mon-vat-ly",
-    simulationUrl:
-      "/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-1-gioi-thieu-muc-dich-hoc-tap-mon-vat-ly/bai-1-lam-quen-voi-mon-vat-ly/1-ly-thuyet-lam-quen-voi-mon-vat-ly",
     theory: 3,
     example: 10,
     exercise: 3,
@@ -40,8 +38,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Độ dịch chuyển - Quãng đường đi được",
     sampleLessonPath:
       "lop-10/co-hoc-phan-1/chu-de-2-mo-ta-chuyen-dong/bai-1-do-dich-chuyen-quang-duong-di-duoc/1-ly-thuyet-do-dich-chuyen-quang-duong-di-duoc",
-    simulationUrl:
-      "/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-2-mo-ta-chuyen-dong/bai-1-do-dich-chuyen-quang-duong-di-duoc/1-ly-thuyet-do-dich-chuyen-quang-duong-di-duoc",
     theory: 6,
     example: 40,
     exercise: 9,
@@ -55,8 +51,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Tổng hợp và phân tích lực",
     sampleLessonPath:
       "lop-10/co-hoc-phan-1/chu-de-3-luc-va-chuyen-dong/bai-1-tong-hop-va-phan-tich-luc/1-ly-thuyet-tong-hop-va-phan-tich-luc",
-    simulationUrl:
-      "/api/mo-phong/lop-10/co-hoc-phan-1/chu-de-3-luc-va-chuyen-dong/bai-1-tong-hop-va-phan-tich-luc/1-ly-thuyet-tong-hop-va-phan-tich-luc",
     theory: 4,
     example: 52,
     exercise: 6,
@@ -69,8 +63,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     title: "SÓNG CƠ",
     sampleLessonName: "Mô tả sóng",
     sampleLessonPath: "lop-11/song/chu-de-1-song-co/bai-1-mo-ta-song/1-ly-thuyet-mo-ta-song",
-    simulationUrl:
-      "/api/mo-phong/lop-11/song/chu-de-1-song-co/bai-1-mo-ta-song/1-ly-thuyet-mo-ta-song",
     theory: 3,
     example: 18,
     exercise: 5,
@@ -84,8 +76,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Sóng điện từ",
     sampleLessonPath:
       "lop-11/song/chu-de-2-song-dien-tu/bai-1-song-dien-tu/1-ly-thuyet-song-dien-tu",
-    simulationUrl:
-      "/api/mo-phong/lop-11/song/chu-de-2-song-dien-tu/bai-1-song-dien-tu/1-ly-thuyet-song-dien-tu",
     theory: 1,
     example: 0,
     exercise: 1,
@@ -99,8 +89,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Giao thoa sóng cơ",
     sampleLessonPath:
       "lop-11/song/chu-de-3-giao-thoa-song/bai-1-giao-thoa-song-co/1-ly-thuyet-giao-thoa-song-co",
-    simulationUrl:
-      "/api/mo-phong/lop-11/song/chu-de-3-giao-thoa-song/bai-1-giao-thoa-song-co/1-ly-thuyet-giao-thoa-song-co",
     theory: 4,
     example: 41,
     exercise: 6,
@@ -113,8 +101,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     title: "SÓNG DỪNG",
     sampleLessonName: "Sóng dừng",
     sampleLessonPath: "lop-11/song/chu-de-4-song-dung/bai-1-song-dung/1-ly-thuyet-song-dung",
-    simulationUrl:
-      "/api/mo-phong/lop-11/song/chu-de-4-song-dung/bai-1-song-dung/1-ly-thuyet-song-dung",
     theory: 1,
     example: 29,
     exercise: 2,
@@ -128,8 +114,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Thuyết động học phân tử khí lí tưởng",
     sampleLessonPath:
       "lop-12/chat-khi/chu-de-1-chat-khi/bai-1-thuyet-dong-hoc-phan-tu-khi-ly-tuong/1-ly-thuyet-thuyet-dong-hoc-phan-tu-khi-ly-tuong",
-    simulationUrl:
-      "/api/mo-phong/lop-12/chat-khi/chu-de-1-chat-khi/bai-1-thuyet-dong-hoc-phan-tu-khi-ly-tuong/1-ly-thuyet-thuyet-dong-hoc-phan-tu-khi-ly-tuong",
     theory: 12,
     example: 53,
     exercise: 13,
@@ -143,8 +127,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Thang nhiệt độ - Nhiệt kế",
     sampleLessonPath:
       "lop-12/nhiet-hoc/chu-de-1-nhiet-hoc/bai-1-thang-nhiet-do-nhiet-ke/1-ly-thuyet-thang-nhiet-do-nhiet-ke",
-    simulationUrl:
-      "/api/mo-phong/lop-12/nhiet-hoc/chu-de-1-nhiet-hoc/bai-1-thang-nhiet-do-nhiet-ke/1-ly-thuyet-thang-nhiet-do-nhiet-ke",
     theory: 5,
     example: 9,
     exercise: 7,
@@ -158,8 +140,6 @@ export const SHOWCASE_TOPICS: ShowcaseTopic[] = [
     sampleLessonName: "Từ trường - Cảm ứng từ",
     sampleLessonPath:
       "lop-12/tu-truong/chu-de-1-tu-truong/bai-1-tu-truong-cam-ung-tu/1-ly-thuyet-tu-truong-cam-ung-tu",
-    simulationUrl:
-      "/api/mo-phong/lop-12/tu-truong/chu-de-1-tu-truong/bai-1-tu-truong-cam-ung-tu/1-ly-thuyet-tu-truong-cam-ung-tu",
     theory: 13,
     example: 67,
     exercise: 15,
@@ -244,14 +224,9 @@ export function ShowcaseTopics() {
         <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-lab-line bg-lab-paper">
           {simulationOpen ? (
             <div className="relative size-full">
-              <iframe
-                key={`${current.sampleLessonPath}-${reloadKey}`}
-                src={`/api/mo-phong/${current.sampleLessonPath}`}
-                title={`${current.title} — ${current.sampleLessonName}`}
-                className="absolute inset-0 size-full border-0 bg-background"
-                sandbox="allow-scripts allow-popups allow-forms allow-pointer-lock allow-same-origin"
-                allow="fullscreen; accelerometer; gyroscope; autoplay"
-              />
+              <div className="absolute inset-0 overflow-y-auto bg-background p-3 sm:p-4">
+                <InteractivePhysicsLab initialDomain="co-hoc" compact />
+              </div>
               {/* Floating controls */}
               <div className="absolute top-3 right-3 z-10 flex items-center gap-1 rounded-lg border border-lab-line bg-lab-surface/90 p-1 shadow-lg backdrop-blur">
                 <button
@@ -272,16 +247,15 @@ export function ShowcaseTopics() {
                 >
                   <Maximize2 className="size-3.5" />
                 </Link>
-                <a
-                  href={`/api/mo-phong/${current.sampleLessonPath}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <Link
+                  to="/mo-phong/$"
+                  params={{ _splat: current.sampleLessonPath }}
                   className="flex size-7 items-center justify-center rounded-md text-lab-subtle hover:bg-lab-line/40 hover:text-lab-ink"
-                  title="Mở trong tab mới"
-                  aria-label="Mở trong tab mới"
+                  title="Mở bài học đầy đủ"
+                  aria-label="Mở bài học đầy đủ"
                 >
                   <ExternalLink className="size-3.5" />
-                </a>
+                </Link>
                 <button
                   type="button"
                   onClick={() => setSimulationOpen(false)}

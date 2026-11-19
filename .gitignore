@@ -41,3 +41,11 @@ dist-ssr
 
 # Kết quả build cho Vercel
 .vercel
+
+# Bản sao site nguồn (vatly.ai) — KHÔNG commit bản sao giao diện/nội dung bên thứ ba
+.site-import/pages/
+.site-import/reference.png
+.site-import/observations/evidence/
+.site-import/capture.json
+.site-import/captured.css
+.site-import/clone.marked.html
