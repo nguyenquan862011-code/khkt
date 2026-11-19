@@ -4,7 +4,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Footer } from "@/components/footer";
 import { ClassicExperimentDiagram } from "@/components/classic-experiment-diagram";
 import { ExperimentPhoto } from "@/components/experiment-photo";
-import { CLASSIC_EXPERIMENTS, type ClassicCategory } from "@/data/classic-experiments";
+import { ALL_CLASSIC_EXPERIMENTS, type ClassicCategory } from "@/data/classic-experiments";
 import { getLearningState, subscribeLearningState, toggleFavoriteItem } from "@/lib/learning-store";
 import {
   History,
@@ -51,7 +51,7 @@ function clampParam(val: number, min: number, max: number, step: number): number
 }
 
 function ClassicExperimentsPage() {
-  const [selectedExpId, setSelectedExpId] = useState<string>(CLASSIC_EXPERIMENTS[0]!.id);
+  const [selectedExpId, setSelectedExpId] = useState<string>(ALL_CLASSIC_EXPERIMENTS[0]!.id);
   const [selectedCategory, setSelectedCategory] = useState<"all" | ClassicCategory | "favorites">(
     "all",
   );
@@ -103,7 +103,7 @@ function ClassicExperimentsPage() {
 
   const filteredExperiments = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return CLASSIC_EXPERIMENTS.filter((e) => {
+    return ALL_CLASSIC_EXPERIMENTS.filter((e) => {
       const catMatch =
         selectedCategory === "all"
           ? true
@@ -124,7 +124,7 @@ function ClassicExperimentsPage() {
     return (
       filteredExperiments.find((e) => e.id === selectedExpId) ||
       filteredExperiments[0] ||
-      CLASSIC_EXPERIMENTS[0]!
+      ALL_CLASSIC_EXPERIMENTS[0]!
     );
   }, [selectedExpId, filteredExperiments]);
 
@@ -192,22 +192,22 @@ function ClassicExperimentsPage() {
           <div className="mx-auto max-w-7xl">
             <p className="inline-flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-[#72CF91] mb-3">
               <History className="size-3.5 text-[#C8ED78]" />
-              <span>Thư viện {CLASSIC_EXPERIMENTS.length} thí nghiệm vật lý kinh điển</span>
+              <span>Thư viện {ALL_CLASSIC_EXPERIMENTS.length} thí nghiệm vật lý kinh điển</span>
             </p>
             <h1 className="text-balance text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
               Những Thí Nghiệm Làm Thay Đổi Lịch Sử Vật Lý
             </h1>
             <p className="mt-2 max-w-2xl text-xs sm:text-sm text-[#EDF5ED]/80 leading-relaxed">
-              Tái hiện {CLASSIC_EXPERIMENTS.length} thí nghiệm kinh điển từ Galilei, Newton, Young,
-              Faraday đến Rutherford, Bohr và Einstein: thiết lập giả thuyết, điều chỉnh thông số,
-              chạy mô phỏng trực quan và tự kiểm tra bản chất vật lý.
+              Tái hiện {ALL_CLASSIC_EXPERIMENTS.length} thí nghiệm kinh điển từ Galilei, Newton,
+              Young, Faraday đến Rutherford, Bohr và Einstein: thiết lập giả thuyết, điều chỉnh
+              thông số, chạy mô phỏng trực quan và tự kiểm tra bản chất vật lý.
             </p>
 
             {/* Category Filter & Quick Search */}
             <div className="mt-6 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-wrap gap-2">
                 {[
-                  { id: "all" as const, label: `Tất cả (${CLASSIC_EXPERIMENTS.length})` },
+                  { id: "all" as const, label: `Tất cả (${ALL_CLASSIC_EXPERIMENTS.length})` },
                   { id: "co-hoc" as const, label: "Cơ học & Động lực học" },
                   { id: "song-dao-dong" as const, label: "Sóng & Dao động" },
                   { id: "dien-hoc" as const, label: "Điện học" },

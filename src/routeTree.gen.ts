@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CongThucRouteImport } from './routes/cong-thuc'
 import { Route as LuyenTapRouteImport } from './routes/luyen-tap'
+import { Route as NguonBanQuyenRouteImport } from './routes/nguon-ban-quyen'
 import { Route as TaiKhoanRouteImport } from './routes/tai-khoan'
 import { Route as TaiLieuRouteImport } from './routes/tai-lieu'
 import { Route as ThiNghiemKinhDienRouteImport } from './routes/thi-nghiem-kinh-dien'
@@ -33,6 +34,11 @@ const CongThucRoute = CongThucRouteImport.update({
 const LuyenTapRoute = LuyenTapRouteImport.update({
   id: '/luyen-tap',
   path: '/luyen-tap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NguonBanQuyenRoute = NguonBanQuyenRouteImport.update({
+  id: '/nguon-ban-quyen',
+  path: '/nguon-ban-quyen',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TaiKhoanRoute = TaiKhoanRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cong-thuc': typeof CongThucRoute
   '/luyen-tap': typeof LuyenTapRoute
+  '/nguon-ban-quyen': typeof NguonBanQuyenRoute
   '/tai-khoan': typeof TaiKhoanRoute
   '/tai-lieu': typeof TaiLieuRoute
   '/thi-nghiem-kinh-dien': typeof ThiNghiemKinhDienRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cong-thuc': typeof CongThucRoute
   '/luyen-tap': typeof LuyenTapRoute
+  '/nguon-ban-quyen': typeof NguonBanQuyenRoute
   '/tai-khoan': typeof TaiKhoanRoute
   '/tai-lieu': typeof TaiLieuRoute
   '/thi-nghiem-kinh-dien': typeof ThiNghiemKinhDienRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cong-thuc': typeof CongThucRoute
   '/luyen-tap': typeof LuyenTapRoute
+  '/nguon-ban-quyen': typeof NguonBanQuyenRoute
   '/tai-khoan': typeof TaiKhoanRoute
   '/tai-lieu': typeof TaiLieuRoute
   '/thi-nghiem-kinh-dien': typeof ThiNghiemKinhDienRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cong-thuc'
     | '/luyen-tap'
+    | '/nguon-ban-quyen'
     | '/tai-khoan'
     | '/tai-lieu'
     | '/thi-nghiem-kinh-dien'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cong-thuc'
     | '/luyen-tap'
+    | '/nguon-ban-quyen'
     | '/tai-khoan'
     | '/tai-lieu'
     | '/thi-nghiem-kinh-dien'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cong-thuc'
     | '/luyen-tap'
+    | '/nguon-ban-quyen'
     | '/tai-khoan'
     | '/tai-lieu'
     | '/thi-nghiem-kinh-dien'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CongThucRoute: typeof CongThucRoute
   LuyenTapRoute: typeof LuyenTapRoute
+  NguonBanQuyenRoute: typeof NguonBanQuyenRoute
   TaiKhoanRoute: typeof TaiKhoanRoute
   TaiLieuRoute: typeof TaiLieuRoute
   ThiNghiemKinhDienRoute: typeof ThiNghiemKinhDienRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: '/luyen-tap'
       fullPath: '/luyen-tap'
       preLoaderRoute: typeof LuyenTapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nguon-ban-quyen': {
+      id: '/nguon-ban-quyen'
+      path: '/nguon-ban-quyen'
+      fullPath: '/nguon-ban-quyen'
+      preLoaderRoute: typeof NguonBanQuyenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tai-khoan': {
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CongThucRoute: CongThucRoute,
   LuyenTapRoute: LuyenTapRoute,
+  NguonBanQuyenRoute: NguonBanQuyenRoute,
   TaiKhoanRoute: TaiKhoanRoute,
   TaiLieuRoute: TaiLieuRoute,
   ThiNghiemKinhDienRoute: ThiNghiemKinhDienRoute,

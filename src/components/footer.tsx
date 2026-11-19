@@ -12,6 +12,7 @@ import {
   Mail,
   Copy,
   Check,
+  ShieldCheck,
 } from "lucide-react";
 import { APP_CONFIG } from "@/lib/config";
 
@@ -116,6 +117,15 @@ export function Footer() {
                 >
                   <BookOpen className="size-3.5 shrink-0 text-[#38A875]" />
                   <span>Kho tài liệu Google Drive</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/nguon-ban-quyen"
+                  className="inline-flex items-center gap-2 transition-colors hover:text-[#C8ED78]"
+                >
+                  <ShieldCheck className="size-3.5 shrink-0 text-[#38A875]" />
+                  <span>Nguồn &amp; Bản quyền</span>
                 </Link>
               </li>
             </ul>
